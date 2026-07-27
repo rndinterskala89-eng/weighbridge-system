@@ -1,0 +1,1813 @@
+<!-- dashboard/templates/dashboard/dashboard.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --orange-primary: #F57C00;
+        --orange-light: #FFB74D;
+        --white-milk: #f2f3f8;
+        --blue-text: #1565C0;
+        --blue-dark: #0D47A1;
+        --yellow-gold: #FFD54F;
+        --shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    
+    body { 
+        background: var(--white-milk); 
+        font-size: 15px; 
+        margin: 0;
+        padding: 0;
+    }
+    
+    .main-content {
+        padding: 16px 24px !important;
+        max-width: 100% !important;
+    }
+    
+    .dashboard-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        border: none;
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+    
+    .dashboard-card .card-header {
+        background: transparent;
+        border-bottom: 2px solid #FFE0B2;
+        padding: 10px 16px;
+        font-weight: 700;
+        color: var(--blue-text);
+        font-size: 15px;
+    }
+    
+    .dashboard-card .card-header h6 { 
+        color: var(--blue-text); 
+        font-weight: 700; 
+        font-size: 16px; 
+        margin: 0; 
+    }
+    .dashboard-card .card-body { padding: 14px 18px; }
+    
+    .weight-main-container {
+        background: linear-gradient(135deg, #ffffff 0%, #FFF8F0 100%);
+        border-radius: 12px;
+        padding: 30px 24px;
+        text-align: center;
+        border: 2px solid var(--orange-primary);
+        box-shadow: 0 2px 12px rgba(245, 124, 0, 0.12);
+        transition: border-color 0.3s;
+    }
+    
+    .weight-main-label {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #8D6E63;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .weight-main-label i { color: var(--orange-primary); }
+    
+    .weight-main-value {
+        font-size: 64px;
+        font-weight: 800;
+        color: var(--blue-text);
+        line-height: 1.2;
+        transition: color 0.3s;
+    }
+    
+    .weight-main-value.has-weight { color: #2ECC71; }
+    .weight-main-value.no-weight { color: #95A5A6; }
+    .weight-main-value .weight-unit {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--orange-primary);
+        margin-left: 4px;
+    }
+    
+    .live-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: #2ECC71;
+        border-radius: 50%;
+        animation: pulse-green 1s infinite;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+    
+    @keyframes pulse-green { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    
+    .camera-container {
+        position: relative;
+        background: #1a1a2e;
+        border-radius: 10px;
+        overflow: hidden;
+        min-height: 160px;
+        max-height: 200px;
+        border: 2px solid var(--orange-primary);
+    }
+    
+    #videoElement {
+        width: 100%;
+        height: 100%;
+        min-height: 160px;
+        max-height: 200px;
+        object-fit: cover;
+        background: #1a1a2e;
+        display: block;
+    }
+    
+    .camera-placeholder {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.5);
+        background: #1a1a2e;
+        z-index: 1;
+    }
+    .camera-placeholder i { font-size: 32px; opacity: 0.3; margin-bottom: 4px; }
+    .camera-placeholder p { font-size: 14px; margin: 0; }
+    .camera-placeholder small { font-size: 11px; opacity: 0.4; }
+    
+    .camera-overlay {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        z-index: 10;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .camera-overlay button {
+        padding: 5px 14px;
+        border-radius: 30px;
+        border: none;
+        font-weight: 700;
+        font-size: 11px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .camera-overlay button:hover { transform: scale(1.05); }
+    
+    .btn-start-cam { background: #2ECC71; color: white; }
+    .btn-stop-cam { background: #E74C3C; color: white; }
+    .btn-save-cam { background: linear-gradient(135deg, #F57C00, #E65100); color: white; }
+    
+    .camera-status-badge {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        z-index: 10;
+        padding: 3px 14px;
+        border-radius: 15px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .camera-status-badge.active { background: #2ECC71; color: white; animation: pulse-green 2s infinite; }
+    .camera-status-badge.inactive { background: #E74C3C; color: white; }
+    .camera-status-badge i { margin-right: 4px; }
+    
+    .camera-weight-overlay {
+        position: absolute;
+        bottom: 40px;
+        left: 12px;
+        z-index: 10;
+        background: rgba(0,0,0,0.80);
+        backdrop-filter: blur(6px);
+        color: #FFFFFF;
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        border-left: 3px solid var(--orange-primary);
+    }
+    .camera-weight-overlay i { color: var(--orange-light); margin-right: 4px; }
+    
+    .form-compact .form-label { 
+        font-size: 14px; 
+        font-weight: 700; 
+        color: #2C3E50; 
+        margin-bottom: 4px; 
+    }
+    .form-compact .form-control, .form-compact .form-select {
+        font-size: 14px; 
+        padding: 8px 12px; 
+        border-radius: 8px;
+        border: 1.5px solid #D5D8DC; 
+        background: #FAFBFC;
+        transition: all 0.3s;
+        height: 38px;
+    }
+    .form-compact .form-control:focus, .form-compact .form-select:focus {
+        border-color: var(--orange-primary);
+        box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+    }
+    .form-compact .row { margin-bottom: 6px; }
+    
+    .form-compact textarea.form-control {
+        height: 50px;
+        min-height: 40px;
+        max-height: 80px;
+        resize: vertical;
+        font-size: 14px;
+        padding: 8px 12px;
+        font-family: inherit;
+    }
+    
+    .stat-compact {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 10px 12px;
+        box-shadow: var(--shadow);
+        border-left: 3px solid var(--orange-primary);
+        text-align: center;
+    }
+    .stat-compact .label { 
+        font-size: 10px; 
+        text-transform: uppercase; 
+        color: #8D6E63; 
+        font-weight: 700; 
+    }
+    .stat-compact .value { 
+        font-size: 20px; 
+        font-weight: 800; 
+        color: var(--blue-text); 
+    }
+    
+    .map-container { 
+        height: 180px; 
+        border-radius: 10px; 
+        overflow: hidden;
+        width: 100%;
+    }
+    #map { 
+        height: 100%; 
+        width: 100%;
+    }
+    
+    .history-scroll {
+        max-height: 250px;
+        overflow-y: auto;
+        position: relative;
+    }
+    
+    .history-scroll thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .history-scroll thead th {
+        background: #FFF3E0 !important;
+        border-bottom: 2px solid #F57C00 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+    }
+    
+    .history-table {
+        font-size: 13px;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .history-table thead th {
+        background: #FFF3E0;
+        color: var(--blue-text);
+        font-weight: 700;
+        padding: 14px 20px;
+        border-bottom: 2px solid var(--orange-primary);
+        font-size: 13px;
+        text-align: center;
+    }
+    
+    .history-table tbody td {
+        padding: 12px 18px;
+        border-bottom: 1px solid #FFE0B2;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 13px;
+    }
+    
+    .history-table tbody tr:hover { background: #FFF8F0; }
+    
+    .history-table .badge-history {
+        background: var(--orange-primary);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 13px;
+    }
+    
+    .history-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .history-scroll::-webkit-scrollbar-track {
+        background: #FFF3E0;
+        border-radius: 4px;
+    }
+    .history-scroll::-webkit-scrollbar-thumb {
+        background: var(--orange-primary);
+        border-radius: 4px;
+    }
+    
+    .btn-save-transaction {
+        background: linear-gradient(135deg, #0a0602, #041091bc);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        font-size: 15px;
+        font-weight: 800;
+        border-radius: 8px;
+        width: 100%;
+        transition: all 0.3s;
+        height: 38px;
+        letter-spacing: 0.5px;
+    }
+    .btn-save-transaction:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(245, 124, 0, 0.35);
+        color: white;
+    }
+    
+    .printer-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #FFF8F0;
+        border-radius: 8px;
+        border: 2px solid #FFE0B2;
+        height: 38px;
+    }
+    .printer-check input[type="checkbox"] { 
+        width: 18px; 
+        height: 18px; 
+        accent-color: var(--orange-primary); 
+        cursor: pointer; 
+    }
+    .printer-check label { 
+        font-size: 13px; 
+        font-weight: 700; 
+        color: #2C3E50; 
+        margin: 0; 
+        cursor: pointer; 
+    }
+    .printer-check label i {
+        color: var(--orange-primary);
+        margin-right: 6px;
+    }
+    
+    #printArea {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+        top: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        z-index: -1 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    @media print {
+        @page { size: auto; margin: 5mm 10mm; }
+        body * { visibility: hidden !important; margin: 0 !important; padding: 0 !important; }
+        #printArea, #printArea * { visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; }
+        #printArea {
+            display: block !important;
+            visibility: visible !important;
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: white !important;
+            padding: 15px 20px !important;
+            font-family: 'Courier New', monospace !important;
+            z-index: 99999 !important;
+            overflow: hidden !important;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+        }
+        .no-print, .btn, button, .camera-overlay, .printer-check { display: none !important; }
+        #printArea .print-header h1 { font-size: 22px !important; font-weight: 700 !important; margin: 0 !important; color: #000 !important; text-transform: uppercase !important; }
+        #printArea .print-header p { font-size: 12px !important; margin: 2px 0 !important; color: #333 !important; }
+        #printArea .print-title { text-align: center !important; font-size: 18px !important; font-weight: 700 !important; text-transform: uppercase !important; margin-bottom: 16px !important; letter-spacing: 3px !important; border-bottom: 2px solid #000 !important; padding-bottom: 6px !important; }
+        #printArea .print-body { font-size: 14px !important; line-height: 2.2 !important; padding: 10px 0 !important; }
+        #printArea .print-body .row-item { display: flex !important; padding: 4px 0 !important; border-bottom: 1px solid #eee !important; }
+        #printArea .print-body .row-item .label { font-weight: 700 !important; width: 180px !important; flex-shrink: 0 !important; }
+        #printArea .print-body .row-item .value { flex: 1 !important; font-weight: 400 !important; }
+        #printArea .print-footer { margin-top: 30px !important; padding-top: 20px !important; border-top: 2px solid #000 !important; display: flex !important; justify-content: space-between !important; font-size: 12px !important; }
+        #printArea .print-footer .signature { text-align: center !important; width: 45% !important; }
+        #printArea .print-footer .signature .line { border-top: 1px solid #000 !important; width: 180px !important; margin: 25px auto 5px auto !important; }
+        #printArea .print-footer .signature .label-sign { font-weight: 600 !important; }
+        .no-print { display: none !important; }
+    }
+    
+    #snapshotPreview {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.92);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+    }
+    #snapshotPreview img { 
+        max-width: 60%; 
+        max-height: 60%; 
+        border-radius: 12px; 
+        border: 3px solid var(--orange-primary);
+        object-fit: contain;
+    }
+    #snapshotPreview .close-preview {
+        position: absolute; top: 20px; right: 25px;
+        color: white; font-size: 32px; cursor: pointer; opacity: 0.7;
+        transition: all 0.3s;
+    }
+    #snapshotPreview .close-preview:hover { opacity: 1; transform: rotate(90deg); }
+    #snapshotPreview .preview-actions {
+        position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+        display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    }
+    #snapshotPreview .preview-actions button { padding: 8px 24px; border-radius: 30px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+    #snapshotPreview .preview-actions button:hover { transform: scale(1.05); }
+    .btn-save-snapshot { background: var(--orange-primary); color: white; }
+    .btn-close-snapshot { background: #E74C3C; color: white; }
+    .btn-download-snapshot { background: var(--blue-text); color: white; }
+    
+    .custom-toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 99999;
+        padding: 10px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        max-width: 90%;
+        text-align: center;
+        opacity: 0;
+        transition: all 0.4s ease;
+    }
+    
+    .server-offline {
+        background: #E74C3C !important;
+        color: white !important;
+        border-color: #E74C3C !important;
+        animation: pulse-red 1.5s infinite;
+    }
+    
+    @keyframes pulse-red {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    
+    .printer-status {
+        font-size: 11px;
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+    .printer-status.connected {
+        background: #d4edda;
+        color: #155724;
+    }
+    .printer-status.disconnected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    @media (max-width: 768px) {
+        .main-content { padding: 12px 16px !important; }
+        .weight-main-value { font-size: 40px; }
+        .weight-main-value .weight-unit { font-size: 20px; }
+        .weight-main-container { padding: 20px 16px; }
+        .camera-container { min-height: 110px; max-height: 140px; }
+        #videoElement { min-height: 110px; max-height: 140px; }
+        .camera-weight-overlay { font-size: 13px; padding: 4px 12px; bottom: 32px; }
+        .stat-compact .value { font-size: 15px; }
+        .map-container { height: 120px; }
+        .history-scroll { max-height: 180px; }
+        .form-compact .form-control, .form-compact .form-select { height: 30px; font-size: 12px; }
+        .btn-save-transaction { height: 34px; font-size: 13px; }
+        .history-table thead th { padding: 8px 12px; font-size: 11px; }
+        .history-table tbody td { padding: 6px 10px; font-size: 11px; }
+        .printer-check { height: 34px; padding: 4px 12px; }
+        .printer-check label { font-size: 11px; }
+    }
+    
+    @media (max-width: 480px) {
+        .main-content { padding: 8px 10px !important; }
+        .weight-main-value { font-size: 30px; }
+        .weight-main-value .weight-unit { font-size: 16px; }
+        .weight-main-container { padding: 14px 12px; }
+        .camera-container { min-height: 90px; max-height: 110px; }
+        #videoElement { min-height: 90px; max-height: 110px; }
+        .stat-compact .value { font-size: 13px; }
+        .map-container { height: 90px; }
+        .history-scroll { max-height: 140px; }
+        .form-compact .form-control, .form-compact .form-select { height: 26px; font-size: 11px; padding: 4px 8px; }
+        .btn-save-transaction { height: 30px; font-size: 11px; padding: 4px; }
+        .history-table thead th { padding: 4px 6px; font-size: 9px; }
+        .history-table tbody td { padding: 3px 5px; font-size: 9px; }
+        .history-table .badge-history { font-size: 10px; padding: 2px 8px; }
+        .printer-check { height: 30px; padding: 2px 8px; }
+        .printer-check label { font-size: 10px; }
+        .printer-check input[type="checkbox"] { width: 14px; height: 14px; }
+        .camera-overlay button { font-size: 9px; padding: 3px 10px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-2">
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-3 col-md-12">
+        <!-- WEIGHT DISPLAY -->
+        <div class="dashboard-card">
+            <div class="card-body">
+                <div class="weight-main-container" id="weightContainer">
+                    <div class="weight-main-label">
+                        <i class="fas fa-weight-scale"></i> WEIGHT
+                        <span id="liveIndicator" class="live-indicator" style="display:none;"></span>
+                    </div>
+                    <div class="weight-main-value no-weight" id="currentWeightDisplay">
+                        0.00 <span class="weight-unit">kg</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- STATS -->
+        <div class="row g-1">
+            <div class="col-3"><div class="stat-compact"><div class="label">Total</div><div class="value" id="totalStats">{{ total_weights }}</div></div></div>
+            <div class="col-3"><div class="stat-compact"><div class="label">Avg</div><div class="value" id="avgStats">{{ avg_weight|floatformat:1 }}</div></div></div>
+            <div class="col-3"><div class="stat-compact"><div class="label">Max</div><div class="value" style="color:#27AE60;" id="maxStats">{{ max_weight|floatformat:1 }}</div></div></div>
+            <div class="col-3"><div class="stat-compact"><div class="label">Min</div><div class="value" style="color:#E74C3C;" id="minStats">{{ min_weight|floatformat:1 }}</div></div></div>
+        </div>
+        
+        <!-- MAP -->
+        <div class="dashboard-card">
+            <div class="card-header"><h6><i class="fas fa-map-marker-alt" style="color:#E74C3C;"></i> Location</h6></div>
+            <div class="card-body p-0">
+                <div class="map-container"><div id="map"></div></div>
+            </div>
+        </div>
+        
+        <!-- CAMERA -->
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6><i class="fas fa-video" style="color:var(--orange-primary);"></i> Camera</h6>
+                <span id="cameraStatusBadge" class="camera-status-badge inactive"><i class="fas fa-circle"></i> Off</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="camera-container">
+                    <video id="videoElement" autoplay playsinline></video>
+                    <canvas id="cameraCanvas" style="display:none;"></canvas>
+                    <div class="camera-placeholder" id="cameraPlaceholder">
+                        <i class="fas fa-video-slash"></i><p>Camera Off</p><small>Click Start</small>
+                    </div>
+                    <div class="camera-weight-overlay">
+                        <i class="fas fa-weight-scale"></i> <span id="cameraWeightDisplay">0.00</span> kg
+                    </div>
+                    <div class="camera-overlay">
+                        <button class="btn-start-cam" id="btnStartCam"><i class="fas fa-play"></i> Start</button>
+                        <button class="btn-stop-cam" id="btnStopCam"><i class="fas fa-stop"></i> Stop</button>
+                        <button class="btn-save-cam" id="btnSaveCam"><i class="fas fa-camera"></i> Capture</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-9 col-md-12">
+        <!-- TRANSACTION -->
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6><i class="fas fa-edit" style="color:var(--orange-primary);"></i> Transaction</h6>
+                <span id="printerStatusBadge" class="printer-status disconnected">🔌 Printer Offline</span>
+            </div>
+            <div class="card-body">
+                <form id="transactionForm" class="form-compact">
+                    {% csrf_token %}
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-box"></i> Barang</label>
+                            <select class="form-select" id="barangSelect">
+                                <option value="">-- Pilih --</option>
+                                {% for barang in barang_list %}
+                                    <option value="{{ barang.nama_barang }}" data-id="{{ barang.id_barang }}" data-lot="{{ barang.lot }}">
+                                        {{ barang.nama_barang }}
+                                    </option>
+                                {% endfor %}
+                                <option value="Lainnya">+ Tambah</option>
+                            </select>
+                            <input type="text" class="form-control mt-1" id="barangManual" placeholder="Manual..." style="display:none;">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label"><i class="fas fa-id-card"></i> ID</label>
+                            <input type="text" class="form-control" id="barangId" placeholder="Auto" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="fas fa-tag"></i> Lot</label>
+                            <input type="text" class="form-control" id="barangLot" placeholder="Lot" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-user"></i> Kustomer</label>
+                            <select class="form-select" id="kustomerSelect">
+                                <option value="">-- Pilih --</option>
+                                {% for kustomer in kustomer_list %}
+                                    <option value="{{ kustomer.nama_kustomer }}" data-id="{{ kustomer.id_kustomer }}">
+                                        {{ kustomer.nama_kustomer }}
+                                    </option>
+                                {% endfor %}
+                                <option value="Lainnya">+ Tambah</option>
+                            </select>
+                            <input type="text" class="form-control mt-1" id="kustomerManual" placeholder="Manual..." style="display:none;">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label"><i class="fas fa-id-card"></i> ID</label>
+                            <input type="text" class="form-control" id="kustomerId" placeholder="Auto" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-truck"></i> Supplier</label>
+                            <select class="form-select" id="supplierSelect">
+                                <option value="">-- Pilih --</option>
+                                {% for supplier in supplier_list %}
+                                    <option value="{{ supplier.nama_supplier }}" data-id="{{ supplier.id_supplier }}">
+                                        {{ supplier.nama_supplier }}
+                                    </option>
+                                {% endfor %}
+                                <option value="Lainnya">+ Tambah</option>
+                            </select>
+                            <input type="text" class="form-control mt-1" id="supplierManual" placeholder="Manual..." style="display:none;">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label"><i class="fas fa-id-card"></i> ID</label>
+                            <input type="text" class="form-control" id="supplierId" placeholder="Auto" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="fas fa-receipt"></i> No. Transaksi</label>
+                            <input type="text" class="form-control" id="transactionNumber" readonly style="background:#FFF3E0;font-weight:bold;font-size:13px;">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label"><i class="fas fa-weight-scale"></i> Berat (kg)</label>
+                            <input type="text" class="form-control" id="weightInput" readonly style="background:#FFF3E0;font-weight:bold;font-size:13px;">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="fas fa-calendar"></i> Tanggal</label>
+                            <input type="text" class="form-control" id="dateInput" readonly style="background:#FFF3E0;font-size:13px;">
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label"><i class="fas fa-pencil-alt"></i> Keterangan</label>
+                            <textarea class="form-control" id="keteranganInput" rows="2" placeholder="Tambahkan keterangan..." style="resize:vertical;"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-4 d-flex align-items-center">
+                            <div class="printer-check w-100">
+                                <input type="checkbox" id="printerCheck">
+                                <label for="printerCheck">
+                                    <i class="fas fa-print"></i> Print
+                                    <span id="printStatus" style="font-size:10px;font-weight:normal;color:#999;margin-left:4px;">(off)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="detectAvailablePrinters()" style="font-size:12px;padding:6px;height:38px;border-radius:8px;font-weight:700;">
+                                <i class="fas fa-sync"></i> Detect
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn-save-transaction" id="btnSaveTransaction">
+                                <i class="fas fa-save"></i> SAVE
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- TODAY'S HISTORY -->
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6><i class="fas fa-history" style="color:var(--orange-primary);"></i> Today's Report</h6>
+                <span class="badge" style="background:var(--orange-primary);color:white;font-size:11px;padding:4px 14px;" id="historyCount">{{ today_history|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if today_history %}
+                <div class="history-scroll">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Transaksi</th>
+                                <th>Barang</th>
+                                <th>Kustomer</th>
+                                <th>Berat</th>
+                                <th>Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in today_history %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td><strong>{{ item.data.no_transaksi|default:"-" }}</strong></td>
+                                <td>{{ item.data.barang|default:"-"|truncatechars:15 }}</td>
+                                <td>{{ item.data.kustomer|default:"-"|truncatechars:15 }}</td>
+                                <td><span class="badge-history">{{ item.data.weight|default:"0.00"|floatformat:2 }}</span></td>
+                                <td><span class="text-muted-small">{{ item.created_at|date:"H:i:s" }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox text-muted d-block" style="font-size:28px;"></i>
+                    <span class="text-muted" style="font-size:14px;">No transactions today</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea">
+    <div class="print-header">
+        <h1 id="printCompanyName">PT Interskala Mandiri Indonesia</h1>
+        <p id="printCompanyAddress">Green Sedayu Biz Park Jl. Daan Mogot KM. 18, Kalideres, Jakarta Barat</p>
+        <p id="printCompanyContact">Tel: (021) 2252-2992 | Email: sales@interskala.com</p>
+    </div>
+    
+    <div class="print-title">WEIGHING IoT TICKET</div>
+    
+    <div class="print-body">
+        <div class="row-item"><span class="label">Nama Barang</span><span class="value" id="printBarang">-</span></div>
+        <div class="row-item"><span class="label">Nama Kustomer</span><span class="value" id="printKustomer">-</span></div>
+        <div class="row-item"><span class="label">Nama Supplier</span><span class="value" id="printSupplier">-</span></div>
+        <div class="row-item"><span class="label">Berat</span><span class="value" id="printWeight">- kg</span></div>
+        <div class="row-item"><span class="label">No. Transaksi</span><span class="value" id="printNoTrans">-</span></div>
+        <div class="row-item"><span class="label">Keterangan</span><span class="value" id="printKeterangan">-</span></div>
+        <div class="row-item"><span class="label">Operator</span><span class="value" id="printOperator">-</span></div>
+        <div class="row-item"><span class="label">Tanggal</span><span class="value" id="printDate">-</span></div>
+    </div>
+    
+    <div class="print-footer">
+        <div class="signature">
+            <div class="label-sign">User / Customer</div>
+            <div class="line"></div>
+            <div>(.....................)</div>
+        </div>
+        <div class="signature">
+            <div class="label-sign">Admin / Operator</div>
+            <div class="line"></div>
+            <div id="printOperatorSign">(.....................)</div>
+        </div>
+    </div>
+</div>
+
+<!-- SNAPSHOT PREVIEW -->
+<div id="snapshotPreview">
+    <span class="close-preview" onclick="closePreview()">&times;</span>
+    <img id="snapshotImage" src="" alt="Snapshot">
+    <div class="preview-actions">
+        <button class="btn-download-snapshot" onclick="downloadSnapshot()"><i class="fas fa-download"></i> Download</button>
+        <button class="btn-save-snapshot" onclick="saveSnapshot()"><i class="fas fa-save"></i> Save</button>
+        <button class="btn-close-snapshot" onclick="closePreview()"><i class="fas fa-times"></i> Close</button>
+    </div>
+</div>
+
+<!-- PRINT MODAL -->
+<div class="modal fade" id="printModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:3px solid var(--orange-primary);">
+            <div class="modal-header" style="background:var(--orange-primary);color:white;border-radius:13px 13px 0 0;padding:10px 20px;">
+                <h6 class="modal-title" style="font-size:15px;"><i class="fas fa-print"></i> Print</h6>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-print fa-3x" style="color:var(--orange-primary);margin-bottom:10px;"></i>
+                <p class="mb-0" style="font-size:16px;font-weight:700;">Print now?</p>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top:none;padding-top:0;padding-bottom:16px;">
+                <button class="btn btn-success" onclick="printTransaction()" style="padding:8px 30px;border-radius:30px;font-weight:700;font-size:13px;"><i class="fas fa-check"></i> Yes</button>
+                <button class="btn btn-danger" onclick="closePrintModal()" style="padding:8px 30px;border-radius:30px;font-weight:700;font-size:13px;"><i class="fas fa-times"></i> No</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet CSS & JS dengan fallback -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// ============================================
+// CSRF TOKEN
+// ============================================
+function getCSRFToken() {
+    var cookieValue = null;
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            cookieValue = cookie.substring(10);
+            break;
+        }
+    }
+    if (!cookieValue) {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) cookieValue = meta.getAttribute('content');
+    }
+    if (!cookieValue) {
+        var tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (tokenInput) cookieValue = tokenInput.value;
+    }
+    return cookieValue;
+}
+
+// ============================================
+// SAFE TOAST - TIDAK ERROR
+// ============================================
+var toastTimeout = null;
+
+function showToast(message, type) {
+    try {
+        var existing = document.querySelector('.custom-toast');
+        if (existing) existing.remove();
+        if (toastTimeout) clearTimeout(toastTimeout);
+        type = type || 'info';
+        var colors = { 
+            success: '#2ECC71', 
+            danger: '#E74C3C', 
+            warning: '#F39C12', 
+            info: '#3498DB' 
+        };
+        var toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:' + (colors[type] || '#3498DB') + ';color:white;padding:12px 28px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.2);opacity:0;transition:all 0.4s ease;max-width:90%;text-align:center;';
+        var iconClass = type === 'success' ? 'fa-check-circle' : 
+                        type === 'danger' ? 'fa-exclamation-circle' : 
+                        type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+        toast.innerHTML = '<i class="fas ' + iconClass + ' me-2"></i>' + message;
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.style.opacity = '1'; }, 100);
+        toastTimeout = setTimeout(function() { 
+            toast.style.opacity = '0'; 
+            setTimeout(function() { if (toast.parentNode) toast.remove(); }, 400); 
+        }, 3500);
+    } catch(e) {
+        console.log('Toast error:', e);
+    }
+}
+
+// ============================================
+// UPDATE WEIGHT INPUT
+// ============================================
+function updateWeightInput() {
+    try {
+        var weightDisplay = document.getElementById('currentWeightDisplay');
+        if (weightDisplay) {
+            var text = weightDisplay.textContent.replace('kg', '').trim();
+            var weightInput = document.getElementById('weightInput');
+            if (weightInput) {
+                weightInput.value = text || '0.00';
+            }
+        }
+    } catch(e) { console.warn('updateWeightInput error:', e); }
+}
+
+// ============================================
+// SET WEIGHT DISPLAY & UPDATE MAP
+// ============================================
+function setWeightDisplay(weight, hasObject, latitude, longitude) {
+    try {
+        var weightFormatted = weight.toFixed(2);
+        var weightDisplay = document.getElementById('currentWeightDisplay');
+        if (weightDisplay) {
+            weightDisplay.innerHTML = weightFormatted + ' <span class="weight-unit">kg</span>';
+            weightDisplay.className = (hasObject && weight > 0) ? 'weight-main-value has-weight' : 'weight-main-value no-weight';
+        }
+        
+        var camWeight = document.getElementById('cameraWeightDisplay');
+        if (camWeight) camWeight.textContent = weightFormatted;
+        
+        var weightInput = document.getElementById('weightInput');
+        if (weightInput) weightInput.value = weightFormatted;
+        
+        var liveIndicator = document.getElementById('liveIndicator');
+        if (liveIndicator) {
+            liveIndicator.style.display = 'inline-block';
+        }
+        
+        // ✅ UPDATE MAP MARKER DENGAN BERAT
+        updateMapMarker(weight, latitude, longitude);
+        
+    } catch(e) { console.warn('setWeightDisplay error:', e); }
+}
+
+// ============================================
+// UPDATE MAP MARKER
+// ============================================
+function updateMapMarker(weight, latitude, longitude) {
+    try {
+        if (typeof L === 'undefined' || !window.map) {
+            console.warn('Map not ready');
+            return;
+        }
+        
+        var lat = latitude || -6.152256;
+        var lng = longitude || 106.694091;
+        var weightFormatted = weight.toFixed(2);
+        
+        // Update marker position
+        if (window.marker) {
+            window.marker.setLatLng([lat, lng]);
+            window.marker.setPopupContent('Weight: ' + weightFormatted + ' kg');
+        } else {
+            // Create new marker if doesn't exist
+            window.marker = L.marker([lat, lng], { draggable: true })
+                .addTo(window.map)
+                .bindPopup('Weight: ' + weightFormatted + ' kg')
+                .openPopup();
+        }
+        
+        // Update map center jika weight > 0
+        if (weight > 0) {
+            window.map.setView([lat, lng], 15);
+        }
+        
+        console.log('🗺️ Map updated: ' + weightFormatted + ' kg at ' + lat + ', ' + lng);
+    } catch(e) {
+        console.warn('updateMapMarker error:', e);
+    }
+}
+
+// ============================================
+// REFRESH DATA
+// ============================================
+var lastWeight = -999;
+var lastLat = -6.152256;
+var lastLng = 106.694091;
+
+function refreshData() {
+    try {
+        fetch('/api/latest/', {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'include'
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('HTTP error! status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(result) {
+            if (result.status === 'success') {
+                var data = result.data;
+                var weight = parseFloat(data.weight) || 0;
+                var hasObj = data.has_object || false;
+                var lat = parseFloat(data.latitude) || -6.152256;
+                var lng = parseFloat(data.longitude) || 106.694091;
+                
+                if (weight !== lastWeight || lat !== lastLat || lng !== lastLng) {
+                    lastWeight = weight;
+                    lastLat = lat;
+                    lastLng = lng;
+                    setWeightDisplay(weight, hasObj, lat, lng);
+                }
+            }
+        })
+        .catch(function(error) {
+            if (!error.message.includes('Failed to fetch')) {
+                console.error('❌ Error fetching weight:', error);
+            }
+        });
+    } catch(e) { console.warn('refreshData error:', e); }
+}
+
+// ============================================
+// AUTO SYNC
+// ============================================
+var isSyncing = false;
+
+function autoSyncFromThingSpeak() {
+    try {
+        if (isSyncing) return;
+        
+        var csrfToken = getCSRFToken();
+        if (!csrfToken) return;
+        
+        isSyncing = true;
+        
+        fetch('/api/sync/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include'
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Sync failed with status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.status === 'success') {
+                if (data.latest_weight !== undefined) {
+                    var weight = data.latest_weight || 0;
+                    var hasObj = weight > 0;
+                    if (weight !== lastWeight) {
+                        lastWeight = weight;
+                        setWeightDisplay(weight, hasObj, lastLat, lastLng);
+                    }
+                }
+            }
+            isSyncing = false;
+        })
+        .catch(function(error) {
+            if (!error.message.includes('Failed to fetch')) {
+                console.log('❌ Auto sync error:', error.message);
+            }
+            isSyncing = false;
+        });
+    } catch(e) { console.warn('autoSyncFromThingSpeak error:', e); isSyncing = false; }
+}
+
+// ============================================
+// PRINT DENGAN QZ TRAY
+// ============================================
+var isPrinting = false;
+
+function printWithQZTray(formData) {
+    if (isPrinting) {
+        console.log('⚠️ Already printing, skipping...');
+        return;
+    }
+    
+    isPrinting = true;
+    console.log('🖨️ Printing with QZ Tray...');
+    
+    var statusBadge = document.getElementById('printerStatusBadge');
+    if (statusBadge) {
+        statusBadge.className = 'printer-status connected';
+        statusBadge.innerHTML = '🔄 Printing...';
+    }
+    
+    fetch('http://localhost:8182/api/version', {
+        method: 'GET',
+        mode: 'cors'
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error('QZ Tray not available');
+        }
+        return response.json();
+    })
+    .then(function(version) {
+        console.log('✅ QZ Tray version:', version);
+        return fetch('/print-ticket/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            credentials: 'include',
+            body: JSON.stringify(formData)
+        });
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.json().then(function(err) {
+                throw new Error(err.message || 'Print failed');
+            });
+        }
+        return response.json();
+    })
+    .then(function(result) {
+        console.log('✅ Print result:', result);
+        var statusBadge = document.getElementById('printerStatusBadge');
+        if (statusBadge) {
+            statusBadge.className = 'printer-status connected';
+            statusBadge.innerHTML = '🖨️ ' + (result.printer_type || 'Printed');
+        }
+        showToast('🖨️ Printed on: ' + (result.printer_type || 'Printer'), 'success');
+        isPrinting = false;
+    })
+    .catch(function(error) {
+        console.error('❌ Print error:', error);
+        var statusBadge = document.getElementById('printerStatusBadge');
+        if (statusBadge) {
+            statusBadge.className = 'printer-status disconnected';
+            statusBadge.innerHTML = '🔌 Printer Offline';
+        }
+        if (confirm('QZ Tray tidak tersedia. Gunakan print browser?')) {
+            window.print();
+            showToast('🖨️ Printing via browser', 'info');
+        } else {
+            showToast('❌ Print gagal: ' + error.message, 'danger');
+        }
+        isPrinting = false;
+    });
+}
+
+// ============================================
+// DETEKSI PRINTER
+// ============================================
+function detectAvailablePrinters() {
+    try {
+        var statusBadge = document.getElementById('printerStatusBadge');
+        if (statusBadge) {
+            statusBadge.className = 'printer-status connected';
+            statusBadge.innerHTML = '🔍 Detecting...';
+        }
+        
+        showToast('🔍 Detecting printers...', 'info');
+        
+        fetch('/detect-printers/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include'
+        })
+        .then(function(response) {
+            if (!response.ok) throw new Error('Failed to get printers');
+            return response.json();
+        })
+        .then(function(data) {
+            console.log('📋 Available printers:', data.printers);
+            
+            if (data.printers && data.printers.length > 0) {
+                var statusBadge = document.getElementById('printerStatusBadge');
+                if (statusBadge) {
+                    statusBadge.className = 'printer-status connected';
+                    statusBadge.innerHTML = '✅ ' + data.printers.length + ' printer(s) found';
+                }
+                showToast('🖨️ ' + data.printers.length + ' printer(s) found', 'success');
+            } else {
+                var statusBadge = document.getElementById('printerStatusBadge');
+                if (statusBadge) {
+                    statusBadge.className = 'printer-status disconnected';
+                    statusBadge.innerHTML = '⚠️ No printer found';
+                }
+                showToast('⚠️ No printers detected. Make sure QZ Tray is running.', 'warning');
+            }
+        })
+        .catch(function(error) {
+            console.log('⚠️ Cannot detect printers:', error.message);
+            var statusBadge = document.getElementById('printerStatusBadge');
+            if (statusBadge) {
+                statusBadge.className = 'printer-status disconnected';
+                statusBadge.innerHTML = '🔌 QZ Tray Offline';
+            }
+            showToast('⚠️ Cannot detect printers. Make sure QZ Tray is running.', 'warning');
+        });
+    } catch(e) { console.warn('detectAvailablePrinters error:', e); }
+}
+
+// ============================================
+// DROPDOWN FUNCTIONS
+// ============================================
+function setupDropdowns() {
+    try {
+        var barangSelect = document.getElementById('barangSelect');
+        if (barangSelect) {
+            barangSelect.addEventListener('change', function() {
+                var manual = document.getElementById('barangManual');
+                var idInput = document.getElementById('barangId');
+                var lotInput = document.getElementById('barangLot');
+                if (this.value === 'Lainnya') {
+                    manual.style.display = 'block';
+                    manual.value = '';
+                    idInput.value = '';
+                    lotInput.value = '';
+                    idInput.placeholder = 'ID';
+                    lotInput.readOnly = false;
+                } else {
+                    manual.style.display = 'none';
+                    var selected = this.options[this.selectedIndex];
+                    idInput.value = selected.dataset.id || '';
+                    lotInput.value = selected.dataset.lot || '';
+                    idInput.placeholder = 'Auto';
+                    lotInput.readOnly = true;
+                }
+            });
+        }
+        
+        var kustomerSelect = document.getElementById('kustomerSelect');
+        if (kustomerSelect) {
+            kustomerSelect.addEventListener('change', function() {
+                var manual = document.getElementById('kustomerManual');
+                var idInput = document.getElementById('kustomerId');
+                if (this.value === 'Lainnya') {
+                    manual.style.display = 'block';
+                    manual.value = '';
+                    idInput.value = '';
+                    idInput.placeholder = 'ID';
+                } else {
+                    manual.style.display = 'none';
+                    var selected = this.options[this.selectedIndex];
+                    idInput.value = selected.dataset.id || '';
+                    idInput.placeholder = 'Auto';
+                }
+            });
+        }
+        
+        var supplierSelect = document.getElementById('supplierSelect');
+        if (supplierSelect) {
+            supplierSelect.addEventListener('change', function() {
+                var manual = document.getElementById('supplierManual');
+                var idInput = document.getElementById('supplierId');
+                if (this.value === 'Lainnya') {
+                    manual.style.display = 'block';
+                    manual.value = '';
+                    idInput.value = '';
+                    idInput.placeholder = 'ID';
+                } else {
+                    manual.style.display = 'none';
+                    var selected = this.options[this.selectedIndex];
+                    idInput.value = selected.dataset.id || '';
+                    idInput.placeholder = 'Auto';
+                }
+            });
+        }
+    } catch(e) { console.warn('setupDropdowns error:', e); }
+}
+
+// ============================================
+// TRANSACTION FUNCTIONS
+// ============================================
+function generateTransactionNumber() {
+    try {
+        var now = new Date();
+        var tgl = String(now.getDate()).padStart(2, '0');
+        var bln = String(now.getMonth() + 1).padStart(2, '0');
+        var thn = String(now.getFullYear()).slice(-2);
+        var random = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+        var input = document.getElementById('transactionNumber');
+        if (input) input.value = 'TRX-' + thn + bln + tgl + '-' + random;
+    } catch(e) { console.warn('generateTransactionNumber error:', e); }
+}
+
+function setCurrentDate() {
+    try {
+        var now = new Date();
+        var input = document.getElementById('dateInput');
+        if (input) {
+            input.value = now.toLocaleString('id-ID', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+    } catch(e) { console.warn('setCurrentDate error:', e); }
+}
+
+// ============================================
+// CAMERA FUNCTIONS
+// ============================================
+var video = document.getElementById('videoElement');
+var canvas = document.getElementById('cameraCanvas');
+var stream = null;
+var isCameraRunning = false;
+var snapshotData = null;
+
+function startCamera() {
+    try {
+        var status = document.getElementById('cameraStatusBadge');
+        var placeholder = document.getElementById('cameraPlaceholder');
+        
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
+                audio: false
+            })
+            .then(function(mediaStream) {
+                stream = mediaStream;
+                video.srcObject = mediaStream;
+                video.play();
+                isCameraRunning = true;
+                if (placeholder) placeholder.style.display = 'none';
+                if (status) {
+                    status.className = 'camera-status-badge active';
+                    status.innerHTML = '<i class="fas fa-circle"></i> Live';
+                }
+                showToast('Camera started', 'success');
+            })
+            .catch(function(err) {
+                var errorMsg = 'Camera access denied. ' + err.message;
+                if (placeholder) {
+                    placeholder.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#F39C12;"></i><p style="font-size:12px;">' + errorMsg + '</p>';
+                    placeholder.style.display = 'flex';
+                }
+                showToast(errorMsg, 'danger');
+            });
+        } else {
+            showToast('Camera not supported', 'warning');
+        }
+    } catch(e) { console.warn('startCamera error:', e); }
+}
+
+function stopCamera() {
+    try {
+        if (stream) {
+            stream.getTracks().forEach(function(track) { track.stop(); });
+            stream = null;
+        }
+        video.srcObject = null;
+        isCameraRunning = false;
+        var status = document.getElementById('cameraStatusBadge');
+        if (status) {
+            status.className = 'camera-status-badge inactive';
+            status.innerHTML = '<i class="fas fa-circle"></i> Off';
+        }
+        var placeholder = document.getElementById('cameraPlaceholder');
+        if (placeholder) {
+            placeholder.style.display = 'flex';
+            placeholder.innerHTML = '<i class="fas fa-video-slash"></i><p>Camera Off</p><small>Click Start</small>';
+        }
+        showToast('Camera stopped', 'info');
+    } catch(e) { console.warn('stopCamera error:', e); }
+}
+
+// ============================================
+// CAPTURE DAN SAVE - CEPAT (1 DETIK)
+// ============================================
+function captureAndSave() {
+    try {
+        if (isCameraRunning) {
+            // Capture langsung tanpa preview
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            snapshotData = canvas.toDataURL('image/png');
+            
+            // ✅ LANGSUNG SAVE, TIDAK TUNGGU PREVIEW
+            saveTransaction();
+        } else {
+            showToast('Please start camera first!', 'warning');
+        }
+    } catch(e) { console.warn('captureAndSave error:', e); }
+}
+
+// ============================================
+// SAVE TRANSACTION - CEPAT (1 DETIK)
+// ============================================
+function saveTransaction() {
+    try {
+        var barang = document.getElementById('barangManual').value || document.getElementById('barangSelect').value;
+        var barangId = document.getElementById('barangId').value;
+        var barangLot = document.getElementById('barangLot').value;
+        var kustomer = document.getElementById('kustomerManual').value || document.getElementById('kustomerSelect').value;
+        var kustomerId = document.getElementById('kustomerId').value;
+        var supplier = document.getElementById('supplierManual').value || document.getElementById('supplierSelect').value;
+        var supplierId = document.getElementById('supplierId').value;
+        var noTrans = document.getElementById('transactionNumber').value;
+        var weight = document.getElementById('weightInput').value;
+        var keterangan = document.getElementById('keteranganInput').value;
+        var printerCheck = document.getElementById('printerCheck');
+        var isPrint = printerCheck ? printerCheck.checked : false;
+        var dateNow = document.getElementById('dateInput').value;
+        
+        // Validasi
+        if (!barang || barang === '-- Pilih --' || barang === '') { 
+            showToast('⚠️ Please select Barang!', 'warning'); 
+            return; 
+        }
+        if (!kustomer || kustomer === '-- Pilih --' || kustomer === '') { 
+            showToast('⚠️ Please select Kustomer!', 'warning'); 
+            return; 
+        }
+        if (!supplier || supplier === '-- Pilih --' || supplier === '') { 
+            showToast('⚠️ Please select Supplier!', 'warning'); 
+            return; 
+        }
+        if (parseFloat(weight) <= 0) { 
+            showToast('⚠️ Weight must be greater than 0!', 'warning'); 
+            return; 
+        }
+        
+        // Capture foto jika camera running dan belum ada snapshot
+        if (isCameraRunning && !snapshotData) {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            snapshotData = canvas.toDataURL('image/png');
+        }
+        
+        var formData = {
+            barang: barang,
+            barang_id: barangId,
+            barang_lot: barangLot,
+            kustomer: kustomer,
+            kustomer_id: kustomerId,
+            supplier: supplier,
+            supplier_id: supplierId,
+            no_transaksi: noTrans,
+            weight: weight,
+            keterangan: keterangan,
+            photo: snapshotData || '',
+            latitude: lastLat || -6.152256,
+            longitude: lastLng || 106.694091
+        };
+        
+        var csrfToken = getCSRFToken();
+        if (!csrfToken) { 
+            showToast('❌ CSRF token not found. Refresh page.', 'danger'); 
+            return; 
+        }
+        
+        showToast('💾 Saving...', 'info');
+        
+        fetch('/save-transaction/', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': csrfToken 
+            },
+            credentials: 'include',
+            body: JSON.stringify(formData)
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                return response.text().then(function(text) { 
+                    throw new Error(text || 'Server error'); 
+                });
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.status === 'success') {
+                preparePrintData(barang, kustomer, supplier, noTrans, weight, keterangan, dateNow);
+                
+                if (isPrint) {
+                    showToast('✅ Saved! Printing...', 'success');
+                    printWithQZTray(formData);
+                    setTimeout(function() { 
+                        resetFormWithoutPrinter(); 
+                        snapshotData = null;
+                    }, 1000);
+                    setTimeout(function() { location.reload(); }, 3000);
+                } else {
+                    showToast('✅ Saved! ID: ' + (data.id || 'OK'), 'success');
+                    resetFormWithoutPrinter();
+                    snapshotData = null;
+                    // ✅ LANGSUNG RELOAD SETELAH 1 DETIK
+                    setTimeout(function() { location.reload(); }, 1000);
+                }
+            } else {
+                showToast('❌ Error: ' + (data.message || 'Unknown error'), 'danger');
+            }
+        })
+        .catch(function(error) {
+            console.error('❌ Save error:', error);
+            showToast('❌ Error: ' + error.message, 'danger');
+        });
+    } catch(e) { console.error('saveTransaction error:', e); showToast('❌ Error: ' + e.message, 'danger'); }
+}
+
+// ============================================
+// RESET FORM
+// ============================================
+function resetFormWithoutPrinter() {
+    try {
+        var selects = ['barangSelect', 'kustomerSelect', 'supplierSelect'];
+        selects.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        var inputs = ['barangManual', 'barangId', 'barangLot', 
+                      'kustomerManual', 'kustomerId',
+                      'supplierManual', 'supplierId', 
+                      'keteranganInput'];
+        inputs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        var manualInputs = ['barangManual', 'kustomerManual', 'supplierManual'];
+        manualInputs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        
+        var barangId = document.getElementById('barangId');
+        if (barangId) barangId.placeholder = 'Auto';
+        
+        snapshotData = null;
+        generateTransactionNumber();
+        setCurrentDate();
+        updateWeightInput();
+    } catch(e) { console.warn('resetFormWithoutPrinter error:', e); }
+}
+
+function resetForm() {
+    try {
+        var selects = ['barangSelect', 'kustomerSelect', 'supplierSelect'];
+        selects.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        var inputs = ['barangManual', 'barangId', 'barangLot', 
+                      'kustomerManual', 'kustomerId',
+                      'supplierManual', 'supplierId', 
+                      'keteranganInput'];
+        inputs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        
+        var manualInputs = ['barangManual', 'kustomerManual', 'supplierManual'];
+        manualInputs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        
+        var printerCheck = document.getElementById('printerCheck');
+        if (printerCheck) printerCheck.checked = false;
+        
+        snapshotData = null;
+        generateTransactionNumber();
+        setCurrentDate();
+        updateWeightInput();
+    } catch(e) { console.warn('resetForm error:', e); }
+}
+
+// ============================================
+// PREPARE PRINT DATA
+// ============================================
+function preparePrintData(barang, kustomer, supplier, noTrans, weight, keterangan, dateNow) {
+    try {
+        var operatorName = '{{ request.user.get_full_name|default:request.user.username }}';
+        var data = {
+            printBarang: barang || '-',
+            printKustomer: kustomer || '-',
+            printSupplier: supplier || '-',
+            printWeight: (weight || '0.00') + ' kg',
+            printNoTrans: noTrans || '-',
+            printKeterangan: keterangan || '-',
+            printOperator: operatorName || 'Admin',
+            printDate: dateNow || '-',
+            printOperatorSign: '(' + operatorName + ')'
+        };
+        for (var key in data) {
+            var el = document.getElementById(key);
+            if (el) el.textContent = data[key];
+        }
+    } catch(e) { console.warn('preparePrintData error:', e); }
+}
+
+function printTransaction() { 
+    closePrintModal(); 
+    window.print(); 
+    showToast('🖨️ Printing...', 'success'); 
+    resetForm(); 
+    setTimeout(function() { location.reload(); }, 1000); 
+}
+
+function closePrintModal() { 
+    try {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('printModal')); 
+        if (modal) modal.hide(); 
+        resetForm(); 
+    } catch(e) { console.warn('closePrintModal error:', e); }
+}
+
+// ============================================
+// SNAPSHOT FUNCTIONS
+// ============================================
+function downloadSnapshot() {
+    if (!snapshotData) { showToast('No snapshot!', 'warning'); return; }
+    var link = document.createElement('a');
+    link.download = 'snapshot_' + new Date().toISOString().slice(0,19).replace(/:/g, '-') + '.png';
+    link.href = snapshotData;
+    link.click();
+    showToast('📥 Downloaded!', 'success');
+}
+
+function saveSnapshot() { 
+    if (!snapshotData) { showToast('No snapshot!', 'warning'); return; }
+    downloadSnapshot(); 
+    closePreview(); 
+}
+
+function closePreview() { 
+    var preview = document.getElementById('snapshotPreview'); 
+    if (preview) preview.style.display = 'none'; 
+}
+
+// ============================================
+// CHECK QZ TRAY STATUS
+// ============================================
+function checkQZTrayStatus() {
+    try {
+        fetch('http://localhost:8182/api/version', {
+            method: 'GET',
+            mode: 'cors'
+        })
+        .then(function(response) {
+            if (response.ok) {
+                var statusBadge = document.getElementById('printerStatusBadge');
+                if (statusBadge) {
+                    statusBadge.className = 'printer-status connected';
+                    statusBadge.innerHTML = '✅ QZ Tray Ready';
+                }
+                setTimeout(detectAvailablePrinters, 1000);
+            } else {
+                throw new Error('QZ Tray not ready');
+            }
+        })
+        .catch(function() {
+            var statusBadge = document.getElementById('printerStatusBadge');
+            if (statusBadge) {
+                statusBadge.className = 'printer-status disconnected';
+                statusBadge.innerHTML = '🔌 QZ Tray Offline';
+            }
+        });
+    } catch(e) { console.warn('checkQZTrayStatus error:', e); }
+}
+
+// ============================================
+// MONITOR CHECKBOX STATUS
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        var printerCheck = document.getElementById('printerCheck');
+        var printStatus = document.getElementById('printStatus');
+        
+        if (printerCheck && printStatus) {
+            printerCheck.addEventListener('change', function() {
+                if (this.checked) {
+                    printStatus.textContent = '(on)';
+                    printStatus.style.color = '#2ECC71';
+                    showToast('🖨️ Print mode activated', 'success');
+                } else {
+                    printStatus.textContent = '(off)';
+                    printStatus.style.color = '#999';
+                    showToast('Print mode deactivated', 'info');
+                }
+            });
+        }
+    } catch(e) { console.warn('monitor checkbox error:', e); }
+});
+
+// ============================================
+// INITIALIZATION
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Dashboard initialized');
+    
+    try {
+        setupDropdowns();
+        
+        var btnStart = document.getElementById('btnStartCam');
+        var btnStop = document.getElementById('btnStopCam');
+        var btnSave = document.getElementById('btnSaveCam');
+        var btnTransaction = document.getElementById('btnSaveTransaction');
+        
+        if (btnStart) btnStart.addEventListener('click', startCamera);
+        if (btnStop) btnStop.addEventListener('click', stopCamera);
+        if (btnSave) btnSave.addEventListener('click', function() {
+            if (isCameraRunning) {
+                captureAndSave();
+            } else {
+                saveTransaction();
+            }
+        });
+        if (btnTransaction) btnTransaction.addEventListener('click', saveTransaction);
+        
+        generateTransactionNumber();
+        setCurrentDate();
+        updateWeightInput();
+        
+        setTimeout(function() {
+            try { startCamera(); } catch(e) { console.warn('Camera start error:', e); }
+        }, 1000);
+        
+        setTimeout(refreshData, 100);
+        var refreshInterval = setInterval(refreshData, 500);
+        
+        setTimeout(autoSyncFromThingSpeak, 500);
+        var syncInterval = setInterval(autoSyncFromThingSpeak, 3000);
+        
+        setTimeout(checkQZTrayStatus, 2000);
+        
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                clearInterval(refreshInterval);
+                clearInterval(syncInterval);
+            } else {
+                refreshInterval = setInterval(refreshData, 500);
+                syncInterval = setInterval(autoSyncFromThingSpeak, 3000);
+                refreshData();
+            }
+        });
+    } catch(e) {
+        console.error('Initialization error:', e);
+    }
+});
+
+// ============================================
+// MAP - DIPERBAIKI DENGAN UPDATE MARKER
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            try {
+                if (typeof L === 'undefined') {
+                    console.warn('Leaflet not loaded');
+                    mapContainer.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">Map unavailable</div>';
+                    return;
+                }
+                
+                // Inisialisasi map
+                var map = L.map('map', { 
+                    center: [-6.152256, 106.694091], 
+                    zoom: 14, 
+                    zoomControl: false 
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                    attribution: '© OpenStreetMap' 
+                }).addTo(map);
+                
+                // Simpan map ke global
+                window.map = map;
+                
+                // Buat marker
+                var initialWeight = parseFloat(document.getElementById('currentWeightDisplay').textContent) || 0;
+                var marker = L.marker([-6.152256, 106.694091], { draggable: true })
+                    .addTo(map)
+                    .bindPopup('Weight: ' + initialWeight.toFixed(2) + ' kg')
+                    .openPopup();
+                window.marker = marker;
+                
+                // Update map size
+                setTimeout(function() { 
+                    try { map.invalidateSize(); } catch(e) {} 
+                }, 500);
+                
+                console.log('🗺️ Map initialized successfully');
+            } catch (e) {
+                console.warn('Map error:', e);
+                mapContainer.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">Map unavailable</div>';
+            }
+        }
+    }, 1500);
+});
+
+// ============================================
+// UPDATE MAP MARKER DARI WEIGHT DATA
+// ============================================
+// Fungsi updateMapMarker sudah didefinisikan di atas
+// Dan dipanggil dari setWeightDisplay
+</script>
+{% endblock %}

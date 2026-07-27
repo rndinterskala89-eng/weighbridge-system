@@ -1,0 +1,649 @@
+<!-- dashboard/templates/dashboard/login.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Weighing System</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --blue-primary: #0D47A1;
+            --blue-secondary: #1565C0;
+            --blue-light: #42A5F5;
+            --blue-lighter: #BBDEFB;
+            --blue-bg: #E3F2FD;
+            --blue-gradient-start: #0D47A1;
+            --blue-gradient-end: #1565C0;
+            --white-pure: #FFFFFF;
+            --shadow: 0 8px 32px rgba(13, 71, 161, 0.15);
+            --text-dark: #1A237E;
+            --text-gray: #546E7A;
+            --text-light: #78909C;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 50%, #90CAF9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+        
+        /* Background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(13, 71, 161, 0.03) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 80%, rgba(66, 165, 245, 0.03) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 880px;
+            display: flex;
+            background: var(--white-pure);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            min-height: 420px;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(13, 71, 161, 0.06);
+        }
+        
+        /* ============================================
+           LEFT SIDE - COMPANY INFO
+           ============================================ */
+        .login-left {
+            width: 38%;
+            padding: 32px 28px;
+            background: linear-gradient(145deg, #0D47A1 0%, #1565C0 50%, #1A237E 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Decorative elements on left side */
+        .login-left::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            right: -40%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .login-left::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -20%;
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(66, 165, 245, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        
+        .login-left .company-logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.25);
+            object-fit: cover;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            margin-bottom: 14px;
+            background: var(--white-pure);
+            padding: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-left .company-name {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-left .company-slogan {
+            font-size: 12px;
+            opacity: 0.85;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-left .company-divider {
+            width: 40px;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+            margin: 12px auto;
+            border-radius: 2px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-left .company-address {
+            font-size: 10px;
+            opacity: 0.7;
+            line-height: 1.5;
+            max-width: 200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-left .company-address i {
+            font-size: 10px;
+            margin-right: 4px;
+            opacity: 0.8;
+        }
+        
+        .login-left .fda-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.12);
+            padding: 5px 16px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 14px;
+            border: 1px solid rgba(255,255,255,0.1);
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(4px);
+        }
+        
+        .login-left .fda-badge i {
+            font-size: 11px;
+        }
+        
+        /* ============================================
+           RIGHT SIDE - LOGIN FORM
+           ============================================ */
+        .login-right {
+            width: 62%;
+            padding: 32px 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: var(--white-pure);
+        }
+        
+        .login-right .login-header {
+            margin-bottom: 20px;
+        }
+        
+        .login-right .login-header .welcome-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+        
+        .login-right .login-header .welcome-text i {
+            color: var(--blue-primary);
+            font-size: 20px;
+            margin-right: 6px;
+        }
+        
+        .login-right .login-header .welcome-sub {
+            font-size: 13px;
+            color: var(--text-gray);
+            font-weight: 400;
+        }
+        
+        .login-right .login-header .welcome-sub i {
+            color: var(--blue-primary);
+            font-size: 12px;
+            margin-right: 4px;
+        }
+        
+        .login-form .form-group {
+            margin-bottom: 14px;
+        }
+        
+        .login-form .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        
+        .login-form .form-label i {
+            color: var(--blue-primary);
+            margin-right: 4px;
+            font-size: 12px;
+            width: 16px;
+        }
+        
+        .login-form .form-control {
+            border: 1.5px solid #E8ECF1;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            background: #FAFCFE;
+            height: 40px;
+        }
+        
+        .login-form .form-control:focus {
+            border-color: var(--blue-primary);
+            box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.08);
+            background: var(--white-pure);
+        }
+        
+        .login-form .form-control::placeholder {
+            color: #B0BEC5;
+            font-size: 12px;
+        }
+        
+        .login-form .btn-login {
+            width: 100%;
+            padding: 9px;
+            background: linear-gradient(135deg, #0D47A1 0%, #1565C0 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin-top: 4px;
+            cursor: pointer;
+            height: 42px;
+            letter-spacing: 0.3px;
+        }
+        
+        .login-form .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(13, 71, 161, 0.3);
+            background: linear-gradient(135deg, #0D47A1 0%, #1A237E 100%);
+        }
+        
+        .login-form .btn-login:active {
+            transform: translateY(0);
+        }
+        
+        .login-form .btn-login i {
+            margin-right: 6px;
+        }
+        
+        .login-form .error-message {
+            background: #FFEBEE;
+            border: 1px solid #FFCDD2;
+            border-radius: 6px;
+            padding: 8px 14px;
+            color: #C62828;
+            font-size: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .login-form .error-message i {
+            font-size: 14px;
+        }
+        
+        .login-footer {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid #E8ECF1;
+            text-align: center;
+        }
+        
+        .login-footer .footer-text {
+            font-size: 10px;
+            color: var(--text-gray);
+            margin: 0;
+        }
+        
+        .login-footer .footer-text i {
+            font-size: 9px;
+        }
+        
+        .login-footer .footer-text a {
+            color: var(--blue-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-footer .footer-text a:hover {
+            text-decoration: underline;
+        }
+        
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+                max-width: 420px;
+                min-height: auto;
+                border-radius: 14px;
+            }
+            
+            .login-left {
+                width: 100%;
+                padding: 24px 20px;
+                border-radius: 14px 14px 0 0;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px 16px;
+            }
+            
+            .login-left::before,
+            .login-left::after {
+                display: none;
+            }
+            
+            .login-left .company-logo {
+                width: 52px;
+                height: 52px;
+                margin-bottom: 0;
+            }
+            
+            .login-left .company-name {
+                font-size: 15px;
+            }
+            
+            .login-left .company-slogan {
+                font-size: 10px;
+            }
+            
+            .login-left .company-divider {
+                display: none;
+            }
+            
+            .login-left .company-address {
+                font-size: 9px;
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            .login-left .fda-badge {
+                font-size: 9px;
+                padding: 4px 12px;
+                margin-top: 6px;
+            }
+            
+            .login-right {
+                width: 100%;
+                padding: 24px 20px;
+                border-radius: 0 0 14px 14px;
+            }
+            
+            .login-right .login-header .welcome-text {
+                font-size: 19px;
+            }
+            
+            .login-right .login-header .welcome-sub {
+                font-size: 11px;
+            }
+            
+            .login-form .form-control {
+                height: 36px;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            
+            .login-form .btn-login {
+                height: 38px;
+                font-size: 13px;
+                padding: 7px;
+            }
+            
+            .login-footer .footer-text {
+                font-size: 9px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            body {
+                padding: 10px;
+            }
+            
+            .login-container {
+                max-width: 100%;
+                border-radius: 12px;
+            }
+            
+            .login-left {
+                padding: 16px 14px;
+                gap: 4px 10px;
+            }
+            
+            .login-left .company-logo {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .login-left .company-name {
+                font-size: 13px;
+            }
+            
+            .login-left .company-slogan {
+                font-size: 9px;
+            }
+            
+            .login-left .company-address {
+                font-size: 8px;
+            }
+            
+            .login-left .fda-badge {
+                font-size: 8px;
+                padding: 3px 10px;
+            }
+            
+            .login-right {
+                padding: 16px 14px;
+            }
+            
+            .login-right .login-header .welcome-text {
+                font-size: 17px;
+            }
+            
+            .login-right .login-header .welcome-sub {
+                font-size: 10px;
+            }
+            
+            .login-form .form-label {
+                font-size: 11px;
+            }
+            
+            .login-form .form-control {
+                height: 32px;
+                font-size: 11px;
+                padding: 5px 10px;
+            }
+            
+            .login-form .btn-login {
+                height: 34px;
+                font-size: 12px;
+                padding: 6px;
+            }
+            
+            .login-footer .footer-text {
+                font-size: 8px;
+            }
+        }
+        
+        /* ============================================
+           DARK MODE SUPPORT
+           ============================================ */
+        @media (prefers-color-scheme: dark) {
+            .login-right {
+                background: #1A1A2E;
+            }
+            
+            .login-right .login-header .welcome-text {
+                color: #E8E8E8;
+            }
+            
+            .login-right .login-header .welcome-sub {
+                color: #A0A0B0;
+            }
+            
+            .login-form .form-label {
+                color: #C8C8D0;
+            }
+            
+            .login-form .form-control {
+                background: #2A2A3E;
+                border-color: #3A3A4E;
+                color: #E8E8E8;
+            }
+            
+            .login-form .form-control:focus {
+                background: #2A2A3E;
+                border-color: var(--blue-primary);
+            }
+            
+            .login-form .form-control::placeholder {
+                color: #6A6A7E;
+            }
+            
+            .login-footer {
+                border-top-color: #2A2A3E;
+            }
+            
+            .login-footer .footer-text {
+                color: #7A7A8E;
+            }
+            
+            .login-footer .footer-text a {
+                color: var(--blue-light);
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="login-container">
+        
+        <!-- LEFT SIDE - Company Info -->
+        <div class="login-left">
+            <!-- Company Logo -->
+            {% if company and company.logo %}
+                <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="company-logo">
+            {% else %}
+                <div class="company-logo" style="display:flex;align-items:center;justify-content:center;background:white;font-size:28px;color:#0D47A1;">
+                    <i class="fas fa-weight-scale"></i>
+                </div>
+            {% endif %}
+            
+            <!-- Company Info -->
+            <div>
+                <div class="company-name">{{ company.name|default:"PT Interskala Mandiri Indonesia" }}</div>
+                <div class="company-slogan">Real-time Weighting Management</div>
+            </div>
+            
+            <div class="company-divider"></div>
+            
+            <!-- Address -->
+            <div class="company-address">
+                <i class="fas fa-map-marker-alt"></i> {{ company.address|default:"Green Sedayu Biz Park, Jl. Daan Mogot KM. 18, Kalideres, Jakarta Barat" }}
+            </div>
+            
+            <!-- FDA Badge -->
+            <div class="fda-badge">
+                <i class="fas fa-certificate"></i> FDA 21 CFR Part 11
+            </div>
+        </div>
+        
+        <!-- RIGHT SIDE - Login Form -->
+        <div class="login-right">
+            <div class="login-header">
+                <div class="welcome-text">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </div>
+                <div class="welcome-sub">
+                    <i class="fas fa-shield-alt"></i> Secure access to weighing system
+                </div>
+            </div>
+            
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Invalid username or password. Please try again.</span>
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label class="form-label" for="id_username">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <input type="text" name="username" id="id_username" class="form-control" 
+                           placeholder="Enter your username" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="id_password">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <input type="password" name="password" id="id_password" class="form-control" 
+                           placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <p class="footer-text">
+                    <i class="fas fa-copyright"></i> {{ company.name|default:"PT Interskala Mandiri Indonesia" }}
+                    &middot;
+                    <a href="mailto:{{ company.email|default:'sales@interskala.com' }}">
+                        <i class="fas fa-envelope"></i> {{ company.email|default:"sales@interskala.com" }}
+                    </a>
+                    &middot; All Rights Reserved
+                </p>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!-- templates/dashboard/print_preview.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Print Preview - LX-310</title>
+    <style>
+        /* ============================================
+           UKURAN KERTAS LX-310
+           Lebar: 21.5cm, Panjang: 13.5cm
+           ============================================ */
+        @page {
+            size: 21.5cm 13.5cm;
+            margin: 0.5cm 0.5cm;
+        }
+        
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10pt;
+            width: 21.5cm;
+            height: 13.5cm;
+            padding: 5px;
+            margin: 0 auto;
+            background: white;
+        }
+        
+        .ticket {
+            width: 100%;
+            height: 100%;
+            border: 1px dashed #ccc;
+            padding: 5px;
+            font-size: 9pt;
+            line-height: 1.2;
+        }
+        
+        .center { text-align: center; }
+        .line { border-top: 1px solid #000; margin: 2px 0; }
+        .thin { border-top: 1px dashed #999; margin: 2px 0; }
+        .bold { font-weight: bold; }
+        
+        .header { text-align: center; margin-bottom: 3px; }
+        .header h2 { font-size: 12pt; margin: 0; }
+        .header small { font-size: 8pt; color: #666; }
+        
+        .content { 
+            display: table; 
+            width: 100%;
+            margin: 3px 0;
+        }
+        .row { 
+            display: table-row; 
+        }
+        .label { 
+            display: table-cell; 
+            width: 30%;
+            font-weight: bold;
+            padding: 1px 2px;
+        }
+        .value { 
+            display: table-cell; 
+            width: 70%;
+            padding: 1px 2px;
+        }
+        
+        .weight {
+            text-align: center;
+            font-size: 14pt;
+            font-weight: bold;
+            padding: 3px 0;
+        }
+        
+        .footer { 
+            text-align: center; 
+            margin-top: 3px;
+            font-size: 7pt;
+            color: #666;
+            border-top: 1px solid #000;
+            padding-top: 3px;
+        }
+        
+        @media print {
+            body { 
+                margin: 0; 
+                padding: 0;
+                width: 21.5cm;
+                height: 13.5cm;
+            }
+            .ticket { border: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket">
+        <!-- HEADER -->
+        <div class="header">
+            <h2>{{ company_name }}</h2>
+            <small>{{ company_address }}</small><br>
+            <small>Tel: {{ company_phone }} | Email: {{ company_email }}</small>
+            <div class="line"></div>
+            <strong>TICKET WEIGHING</strong><br>
+            <small>{{ now|date:"d-m-Y H:i:s" }}</small>
+            <div class="thin"></div>
+        </div>
+        
+        <!-- CONTENT -->
+        <div class="content">
+            <div class="row">
+                <span class="label">No. Transaksi</span>
+                <span class="value">: {{ no_transaksi }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Nama Barang</span>
+                <span class="value">: {{ barang }}</span>
+            </div>
+            <div class="row">
+                <span class="label">ID Barang</span>
+                <span class="value">: {{ barang_id }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Lot</span>
+                <span class="value">: {{ barang_lot }}</span>
+            </div>
+            <div class="thin"></div>
+            <div class="row">
+                <span class="label">Kustomer</span>
+                <span class="value">: {{ kustomer }}</span>
+            </div>
+            <div class="row">
+                <span class="label">ID Kustomer</span>
+                <span class="value">: {{ kustomer_id }}</span>
+            </div>
+            <div class="thin"></div>
+            <div class="row">
+                <span class="label">Supplier</span>
+                <span class="value">: {{ supplier }}</span>
+            </div>
+            <div class="row">
+                <span class="label">ID Supplier</span>
+                <span class="value">: {{ supplier_id }}</span>
+            </div>
+            <div class="thin"></div>
+        </div>
+        
+        <!-- WEIGHT -->
+        <div class="weight">BERAT: {{ weight }} kg</div>
+        <div class="thin"></div>
+        
+        <!-- FOOTER -->
+        <div class="content">
+            <div class="row">
+                <span class="label">Keterangan</span>
+                <span class="value">: {{ keterangan }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Operator</span>
+                <span class="value">: {{ operator }}</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <strong>TERIMA KASIH</strong><br>
+            FDA 21 CFR Part 11 Compliant
+        </div>
+    </div>
+</body>
+</html>

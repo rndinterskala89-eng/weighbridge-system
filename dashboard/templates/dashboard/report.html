@@ -1,0 +1,1335 @@
+<!-- templates/dashboard/report.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Report Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+        font-size: 13px; 
+        background: #f5f7fa;
+        min-height: 100vh;
+        height: auto;
+        overflow-y: auto;
+    }
+    
+    .report-container { 
+        padding: 10px 12px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* ============================================
+       HEADER
+       ============================================ */
+    .report-header {
+        flex-shrink: 0;
+        background: white;
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid #0D47A1;
+        border-radius: 8px 8px 0 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .report-header h2 { 
+        font-size: 18px; 
+        margin: 0; 
+        color: #0D47A1;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .report-header h2 i { color: #0D47A1; }
+    .fda-badge {
+        background: #FF6F00;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(255, 111, 0, 0.3);
+        white-space: nowrap;
+    }
+    .fda-badge i { margin-right: 4px; }
+    
+    /* ============================================
+       FILTER
+       ============================================ */
+    .filter-section {
+        flex-shrink: 0;
+        background: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 10px;
+        border: 1px solid #e9ecef;
+    }
+    .filter-section .row { align-items: flex-end; margin: 0 -4px; }
+    .filter-section .col-12, .filter-section .col-sm-6, .filter-section .col-md-3 {
+        padding: 0 4px;
+    }
+    .filter-section .form-group { margin-bottom: 6px; }
+    .filter-section label { 
+        font-weight: 600; 
+        font-size: 11px; 
+        margin-bottom: 2px;
+        color: #495057;
+        display: block;
+    }
+    .filter-section .form-control { 
+        font-size: 12px; 
+        padding: 5px 10px; 
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        width: 100%;
+    }
+    .filter-section .form-control:focus {
+        border-color: #0D47A1;
+        box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.25);
+    }
+    .filter-section .btn { 
+        font-size: 12px; 
+        padding: 5px 14px; 
+        height: 32px;
+        border-radius: 6px;
+        font-weight: 500;
+        width: 100%;
+    }
+    .filter-section .btn-primary {
+        background: #0D47A1;
+        border-color: #0D47A1;
+    }
+    .filter-section .btn-primary:hover {
+        background: #0a3a84;
+        border-color: #0a3a84;
+    }
+    .filter-section .btn-secondary {
+        background: #6c757d;
+        border-color: #6c757d;
+    }
+    .filter-actions { 
+        display: flex; 
+        gap: 4px; 
+        align-items: center;
+        width: 100%;
+    }
+    .filter-actions .btn {
+        flex: 1;
+        min-width: 0;
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+    
+    /* ============================================
+       EXPORT BUTTONS
+       ============================================ */
+    .export-buttons {
+        flex-shrink: 0;
+        background: white;
+        padding: 8px 12px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .export-buttons .btn-group-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+    }
+    .export-buttons .btn { 
+        font-size: 11px; 
+        padding: 4px 10px; 
+        border-radius: 6px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .export-buttons .btn i { margin-right: 3px; }
+    .export-buttons .btn-success {
+        background: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+    .export-buttons .btn-success:hover {
+        background: #218838;
+        border-color: #1e7e34;
+    }
+    .export-buttons .btn-info {
+        background: #17a2b8;
+        border-color: #17a2b8;
+        color: white;
+    }
+    .export-buttons .btn-info:hover {
+        background: #138496;
+        border-color: #117a8b;
+    }
+    .export-buttons .btn-primary {
+        background: #0D47A1;
+        border-color: #0D47A1;
+        color: white;
+    }
+    .export-buttons .btn-primary:hover {
+        background: #0a3a84;
+        border-color: #0a3a84;
+    }
+    .export-buttons .btn-secondary {
+        background: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+    .export-buttons .btn-secondary:hover {
+        background: #5a6268;
+        border-color: #545b62;
+    }
+    .record-count {
+        font-size: 11px;
+        color: #6c757d;
+        font-weight: 500;
+        margin-left: auto;
+        white-space: nowrap;
+        padding: 3px 8px;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+    .record-count strong {
+        color: #0D47A1;
+        font-size: 13px;
+    }
+    
+    /* ============================================
+       TABLE
+       ============================================ */
+    .table-wrapper {
+        flex: 1;
+        overflow: hidden;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        position: relative;
+        min-height: 300px;
+    }
+    
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        max-height: 70vh;
+    }
+    
+    .table-wrap { 
+        padding: 0;
+        min-width: 100%;
+        display: inline-block;
+    }
+    
+    .table { 
+        font-size: 11px; 
+        margin-bottom: 0; 
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+    }
+    
+    .table thead {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    
+    .table thead th {
+        background: #0D47A1;
+        color: white;
+        font-weight: 600;
+        padding: 6px 4px;
+        font-size: 10px;
+        text-align: center;
+        white-space: nowrap;
+        border: 1px solid #0D47A1;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        min-width: 60px;
+    }
+    
+    .table tbody td {
+        padding: 4px 4px;
+        vertical-align: middle;
+        font-size: 10px;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        background: white;
+        word-break: break-word;
+        max-width: 120px;
+    }
+    .table tbody tr:nth-child(even) td { background: #f8f9fa; }
+    .table tbody tr:hover td { background: #e3f2fd; }
+    
+    .checkbox-column { 
+        width: 30px; 
+        min-width: 30px !important;
+        text-align: center; 
+        background: white !important;
+        padding: 4px !important;
+    }
+    .checkbox-column input[type="checkbox"] { 
+        width: 14px; 
+        height: 14px; 
+        cursor: pointer;
+        accent-color: #0D47A1;
+    }
+    .select-all-checkbox { 
+        width: 14px; 
+        height: 14px; 
+        cursor: pointer;
+        accent-color: #0D47A1;
+    }
+    
+    .badge-transaction {
+        background: #E3F2FD;
+        color: #0D47A1;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 9px;
+        display: inline-block;
+        border: 1px solid #bbdefb;
+        white-space: nowrap;
+    }
+    
+    .photo-thumbnail {
+        width: 35px;
+        height: 35px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 2px solid #e9ecef;
+        cursor: pointer;
+        transition: transform 0.2s;
+        max-width: 100%;
+    }
+    .photo-thumbnail:hover {
+        transform: scale(1.1);
+        border-color: #0D47A1;
+    }
+    
+    /* ============================================
+       PAGINATION
+       ============================================ */
+    .pagination-info {
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .pagination {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px;
+        margin: 0;
+        padding: 0;
+    }
+    .pagination .page-link {
+        color: #0D47A1;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin: 0 1px;
+        border: 1px solid #dee2e6;
+        text-decoration: none;
+        display: inline-block;
+        min-width: 28px;
+        text-align: center;
+    }
+    .pagination .page-item.active .page-link {
+        background: #0D47A1;
+        border-color: #0D47A1;
+        color: white;
+    }
+    .pagination .page-link:hover {
+        background: #e3f2fd;
+        border-color: #0D47A1;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background: #e9ecef;
+    }
+    
+    /* ============================================
+       LOADING
+       ============================================ */
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(4px);
+    }
+    .loading-overlay.active { display: flex; }
+    .loading-content {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        min-width: 200px;
+        max-width: 90%;
+    }
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #0D47A1;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .loading-content h4 {
+        font-size: 15px;
+        margin: 10px 0 4px;
+        color: #0D47A1;
+    }
+    .loading-content p {
+        font-size: 12px;
+        margin: 0;
+        color: #6c757d;
+    }
+    
+    /* ============================================
+       MODAL
+       ============================================ */
+    .modal-image { max-width: 100%; max-height: 80vh; border-radius: 8px; }
+    .modal-body .table-sm td { 
+        padding: 4px 8px; 
+        font-size: 12px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .modal-body .table-sm tr:last-child td { border-bottom: none; }
+    .modal-body h6 {
+        color: #0D47A1;
+        font-weight: 700;
+        margin: 10px 0 6px;
+        font-size: 13px;
+        border-bottom: 2px solid #e3f2fd;
+        padding-bottom: 4px;
+    }
+    .btn-sm { padding: 2px 6px; font-size: 10px; border-radius: 4px; }
+    .btn-sm i { font-size: 10px; }
+    
+    .action-buttons {
+        display: flex;
+        gap: 3px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .action-buttons .btn-sm {
+        padding: 2px 5px;
+        font-size: 9px;
+        min-width: 26px;
+    }
+    .action-buttons .btn-sm i {
+        font-size: 9px;
+    }
+    
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 992px) {
+        .report-container { padding: 8px 10px; }
+        .report-header { 
+            flex-direction: column; 
+            align-items: stretch; 
+            gap: 6px;
+            padding: 10px 12px;
+        }
+        .report-header h2 { font-size: 16px; justify-content: center; }
+        .table { font-size: 10px; min-width: 800px; }
+        .table thead th { font-size: 9px; padding: 4px 3px; min-width: 50px; }
+        .table tbody td { font-size: 9px; padding: 3px 3px; max-width: 100px; }
+    }
+    
+    @media (max-width: 576px) {
+        .report-container { padding: 5px 6px; }
+        .report-header h2 { font-size: 14px; }
+        .table { font-size: 9px; min-width: 650px; }
+        .table thead th { font-size: 8px; padding: 3px 2px; min-width: 40px; }
+        .table tbody td { font-size: 8px; padding: 2px 2px; max-width: 80px; }
+        .photo-thumbnail { width: 25px; height: 25px; }
+        .filter-section .form-control { font-size: 10px; padding: 3px 6px; height: 26px; }
+        .filter-section .btn { font-size: 10px; padding: 3px 8px; height: 26px; }
+        .export-buttons .btn { font-size: 9px; padding: 2px 6px; }
+        .record-count { font-size: 9px; }
+        .pagination-info { flex-direction: column; gap: 6px; text-align: center; }
+        .pagination .page-link { font-size: 9px; padding: 2px 5px; min-width: 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <!-- HEADER -->
+    <div class="report-header no-print">
+        <h2><i class="fas fa-file-alt"></i> Report Management</h2>
+        <div>
+            <span class="fda-badge"><i class="fas fa-shield-alt"></i> FDA 21 CFR Part 11</span>
+        </div>
+    </div>
+    
+    <!-- FILTER -->
+    <div class="filter-section no-print">
+        <form id="filterForm" method="GET" action="{% url 'dashboard:report' %}">
+            <div class="row g-1 g-sm-2">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="form-group">
+                        <label for="start_date"><i class="far fa-calendar-alt"></i> Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ request.GET.start_date }}">
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="form-group">
+                        <label for="end_date"><i class="far fa-calendar-alt"></i> End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ request.GET.end_date }}">
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4">
+                    <div class="form-group">
+                        <label for="search"><i class="fas fa-search"></i> Search</label>
+                        <input type="text" class="form-control" id="search" name="search" placeholder="Search transaction, item, customer..." value="{{ request.GET.search }}">
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-2">
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- EXPORT BUTTONS -->
+    <div class="export-buttons no-print">
+        <div class="btn-group-wrap">
+            <button type="button" class="btn btn-success" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+            <button type="button" class="btn btn-info" onclick="exportSelected()"><i class="fas fa-check-square"></i> Selected</button>
+            <button type="button" class="btn btn-primary" onclick="printReport()"><i class="fas fa-print"></i> Print</button>
+            <button type="button" class="btn btn-secondary" onclick="refreshData()"><i class="fas fa-sync"></i> Refresh</button>
+            <span class="record-count">
+                <i class="fas fa-database"></i> Total: <strong id="totalRecords">{{ page_obj.paginator.count }}</strong>
+            </span>
+        </div>
+    </div>
+    
+    <!-- TABLE WRAPPER -->
+    <div class="table-wrapper">
+        <div class="table-responsive">
+            <div class="table-wrap">
+                <table class="table table-bordered" id="reportTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-column no-print">
+                                <input type="checkbox" class="select-all-checkbox" id="selectAll" onclick="toggleSelectAll()">
+                            </th>
+                            <th style="width:30px;min-width:30px;">No</th>
+                            <th style="min-width:90px;">No. Transaksi</th>
+                            <th style="min-width:100px;">Nama Barang</th>
+                            <th style="min-width:60px;">ID Barang</th>
+                            <th style="min-width:60px;">Lot</th>
+                            <th style="min-width:90px;">Kustomer</th>
+                            <th style="min-width:90px;">Supplier</th>
+                            <th style="width:60px;">Berat (kg)</th>
+                            <th style="min-width:120px;">Tanggal</th>
+                            <th style="min-width:70px;">Operator</th>
+                            <th style="width:50px;">Foto</th>
+                            <th class="no-print" style="width:70px;min-width:60px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        {% for report in page_obj %}
+                        <tr data-id="{{ report.id }}">
+                            <td class="checkbox-column no-print">
+                                <input type="checkbox" class="row-checkbox" value="{{ report.id }}" onclick="updateSelectAll()">
+                            </td>
+                            <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                            <td><span class="badge-transaction">{{ report.data.no_transaksi|default:"N/A" }}</span></td>
+                            <td>{{ report.data.barang|default:"N/A"|truncatechars:15 }}</td>
+                            <td>{{ report.data.barang_id|default:"N/A" }}</td>
+                            <td>{{ report.data.barang_lot|default:"N/A" }}</td>
+                            <td>{{ report.data.kustomer|default:"N/A"|truncatechars:12 }}</td>
+                            <td>{{ report.data.supplier|default:"N/A"|truncatechars:12 }}</td>
+                            <td>{{ report.data.weight|default:"0"|floatformat:1 }}</td>
+                            <td>{{ report.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ report.generated_by.username|default:"Unknown"|truncatechars:10 }}</td>
+                            <td>
+                                {% if report.file_path %}
+                                    <!-- ✅ PERBAIKI: Tambahkan MEDIA_URL -->
+                                    <img src="{{ MEDIA_URL }}{{ report.file_path }}" alt="Photo" class="photo-thumbnail" onclick="showPhoto('{{ report.file_path }}')" title="Click to enlarge" loading="lazy" onerror="this.style.display='none'">
+                                {% else %}
+                                    <span class="text-muted" style="font-size:8px;">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="no-print">
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" onclick="viewDetail('{{ report.id }}')" title="Detail"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteReport('{{ report.id }}')" title="Delete"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="13" class="text-center py-4">
+                                <i class="fas fa-inbox fa-2x text-muted d-block mb-2"></i>
+                                <span class="text-muted" style="font-size: 13px;">No data available</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- PAGINATION -->
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="pagination-info">
+                <div>
+                    <i class="fas fa-list-ul"></i> 
+                    {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                </div>
+                <nav>
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-double-left"></i></span></li>
+                        <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-left"></i></span></li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num == page_obj.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-right"></i></span></li>
+                        <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-double-right"></i></span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h4><i class="fas fa-spinner fa-spin"></i> Processing...</h4>
+        <p>Please wait while we process your request</p>
+    </div>
+</div>
+
+<!-- PHOTO MODAL -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoModalLabel"><i class="fas fa-image"></i> Photo Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" alt="Photo" class="modal-image" id="modalPhoto">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailModalLabel"><i class="fas fa-info-circle"></i> Report Detail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <div class="text-center py-5">
+                    <div class="loading-spinner" style="width:35px;height:35px;"></div>
+                    <p class="mt-3 text-muted">Loading detail information...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// ============================================
+// CSRF TOKEN
+// ============================================
+function getCsrfToken() {
+    var cookie = document.cookie.split('; ').find(function(row) { return row.startsWith('csrftoken='); });
+    if (cookie) return cookie.split('=')[1];
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) return meta.getAttribute('content');
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input) return input.value;
+    return '';
+}
+
+// ============================================
+// LOADING
+// ============================================
+function showLoading() {
+    var overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.classList.add('active');
+}
+
+function hideLoading() {
+    var overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.classList.remove('active');
+}
+
+// ============================================
+// SELECT ALL
+// ============================================
+function toggleSelectAll() {
+    var selectAll = document.getElementById('selectAll');
+    var checkboxes = document.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(function(cb) { cb.checked = selectAll.checked; });
+    updateSelectionCount();
+}
+
+function updateSelectAll() {
+    var checkboxes = document.querySelectorAll('.row-checkbox');
+    var checked = document.querySelectorAll('.row-checkbox:checked');
+    var selectAll = document.getElementById('selectAll');
+    if (selectAll) {
+        selectAll.checked = checkboxes.length > 0 && checkboxes.length === checked.length;
+    }
+    updateSelectionCount();
+}
+
+function updateSelectionCount() {
+    var checked = document.querySelectorAll('.row-checkbox:checked');
+    var total = document.getElementById('totalRecords');
+    if (total) {
+        var count = checked.length;
+        if (count > 0) {
+            total.textContent = count + ' selected';
+            total.style.color = '#28a745';
+        } else {
+            total.textContent = '{{ page_obj.paginator.count }}';
+            total.style.color = '#0D47A1';
+        }
+    }
+}
+
+function getSelectedIds() {
+    var checkboxes = document.querySelectorAll('.row-checkbox:checked');
+    return Array.from(checkboxes).map(function(cb) { return cb.value; });
+}
+
+// ============================================
+// FILTER
+// ============================================
+function resetFilters() {
+    document.getElementById('start_date').value = '';
+    document.getElementById('end_date').value = '';
+    document.getElementById('search').value = '';
+    document.getElementById('filterForm').submit();
+}
+
+function refreshData() {
+    showLoading();
+    setTimeout(function() { location.reload(); }, 500);
+}
+
+// ============================================
+// PHOTO MODAL - ✅ DIPERBAIKI
+// ============================================
+function showPhoto(url) {
+    if (!url || url === '' || url === 'None' || url === 'null' || url === 'undefined') {
+        Swal.fire({
+            icon: 'info',
+            title: 'No Photo',
+            text: 'Tidak ada foto untuk ditampilkan.'
+        });
+        return;
+    }
+    
+    // ✅ Perbaiki URL - tambahkan /media/ jika diperlukan
+    var photoUrl = url;
+    if (!photoUrl.startsWith('http://') && !photoUrl.startsWith('https://') && 
+        !photoUrl.startsWith('/media/') && !photoUrl.startsWith('/static/')) {
+        photoUrl = '/media/' + photoUrl;
+    }
+    
+    console.log('📸 Showing photo:', photoUrl);
+    
+    var imgElement = document.getElementById('modalPhoto');
+    if (imgElement) {
+        imgElement.src = photoUrl;
+        imgElement.onerror = function() {
+            this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3ENo Image%3C/text%3E%3C/svg%3E';
+            console.warn('⚠️ Photo not found:', photoUrl);
+        };
+    }
+    
+    var modal = new bootstrap.Modal(document.getElementById('photoModal'));
+    modal.show();
+}
+
+// ============================================
+// VIEW DETAIL - ✅ DIPERBAIKI
+// ============================================
+function viewDetail(id) {
+    var content = document.getElementById('detailContent');
+    content.innerHTML = `
+        <div class="text-center py-5">
+            <div class="loading-spinner" style="width:35px;height:35px;"></div>
+            <p class="mt-3 text-muted">Loading detail information...</p>
+        </div>
+    `;
+    
+    var modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    modal.show();
+    
+    fetch('/report/detail/' + id + '/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error('HTTP error ' + response.status);
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.status === 'success') {
+            var d = data.data;
+            
+            // ✅ Perbaiki URL foto
+            var photoHtml = 'N/A';
+            if (d.photo && d.photo !== '' && d.photo !== 'None' && d.photo !== 'null' && d.photo !== 'undefined') {
+                var photoUrl = d.photo;
+                if (!photoUrl.startsWith('http://') && !photoUrl.startsWith('https://') && 
+                    !photoUrl.startsWith('/media/') && !photoUrl.startsWith('/static/')) {
+                    photoUrl = '/media/' + photoUrl;
+                }
+                photoHtml = '<img src="' + photoUrl + '" style="max-width:150px;max-height:150px;border-radius:6px;border:1px solid #ddd;object-fit:cover;" onerror="this.style.display=\'none\'">';
+            }
+            
+            content.innerHTML = `
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <h6><i class="fas fa-exchange-alt"></i> Transaction Information</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td style="width:40%;"><strong>No. Transaksi</strong></td><td><span class="badge-transaction">${d.no_transaksi || 'N/A'}</span></td></tr>
+                            <tr><td><strong>Nama Barang</strong></td><td>${d.barang || 'N/A'}</td></tr>
+                            <tr><td><strong>ID Barang</strong></td><td>${d.barang_id || 'N/A'}</td></tr>
+                            <tr><td><strong>Lot</strong></td><td>${d.barang_lot || 'N/A'}</td></tr>
+                            <tr><td><strong>Berat (kg)</strong></td><td><strong>${d.weight || '0'}</strong></td></tr>
+                            <tr><td><strong>Keterangan</strong></td><td>${d.keterangan || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <h6><i class="fas fa-users"></i> Customer & Supplier</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td style="width:40%;"><strong>Nama Kustomer</strong></td><td>${d.kustomer || 'N/A'}</td></tr>
+                            <tr><td><strong>ID Kustomer</strong></td><td>${d.kustomer_id || 'N/A'}</td></tr>
+                            <tr><td><strong>Nama Supplier</strong></td><td>${d.supplier || 'N/A'}</td></tr>
+                            <tr><td><strong>ID Supplier</strong></td><td>${d.supplier_id || 'N/A'}</td></tr>
+                        </table>
+                        <h6 style="margin-top:10px;"><i class="fas fa-info-circle"></i> Additional Information</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td style="width:40%;"><strong>Tanggal</strong></td><td>${d.created_at || 'N/A'}</td></tr>
+                            <tr><td><strong>Operator</strong></td><td>${d.operator || 'N/A'}</td></tr>
+                            <tr><td><strong>Foto</strong></td><td>${photoHtml}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        } else {
+            content.innerHTML = `<div class="alert alert-danger">${data.message || 'Error loading detail'}</div>`;
+        }
+    })
+    .catch(function(error) {
+        content.innerHTML = `<div class="alert alert-danger">Failed to load detail. Please try again.</div>`;
+        console.error('Error:', error);
+    });
+}
+
+// ============================================
+// DELETE REPORT
+// ============================================
+function deleteReport(id) {
+    Swal.fire({
+        title: '⚠️ Konfirmasi Hapus',
+        text: "Apakah Anda yakin ingin menghapus report ini?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        input: 'password',
+        inputLabel: '🔑 Masukkan password untuk verifikasi',
+        inputPlaceholder: 'Password',
+        preConfirm: function(password) {
+            if (!password) {
+                Swal.showValidationMessage('Password required!');
+                return false;
+            }
+            return password;
+        }
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            showLoading();
+            fetch('/report/delete/' + id + '/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ password: result.value })
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    return response.text().then(function(text) {
+                        throw new Error('Server error: ' + response.status + ' - ' + text);
+                    });
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                hideLoading();
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Report berhasil dihapus.',
+                        timer: 1500,
+                        timerProgressBar: true
+                    }).then(function() {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: data.message || 'Gagal menghapus report.',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            })
+            .catch(function(error) {
+                hideLoading();
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Terjadi kesalahan: ' + error.message,
+                    confirmButtonColor: '#d33'
+                });
+            });
+        }
+    });
+}
+
+// ============================================
+// EXPORT EXCEL
+// ============================================
+function exportExcel() {
+    var password = prompt('🔒 FDA Part 11 Compliance\n\nMasukkan password untuk export data:');
+    if (password === null) return;
+    if (!password) {
+        Swal.fire({ icon: 'warning', title: 'Password Required', text: 'Password diperlukan untuk export data!' });
+        return;
+    }
+    
+    var startDate = document.getElementById('start_date')?.value || '';
+    var endDate = document.getElementById('end_date')?.value || '';
+    var search = document.getElementById('search')?.value || '';
+    
+    var params = new URLSearchParams({
+        password: password,
+        start_date: startDate,
+        end_date: endDate,
+        search: search
+    });
+    
+    showLoading();
+    window.location.href = '/report/export-excel/?' + params.toString();
+    setTimeout(function() { hideLoading(); }, 3000);
+}
+
+// ============================================
+// EXPORT SELECTED
+// ============================================
+function exportSelected() {
+    var selectedIds = getSelectedIds();
+    if (selectedIds.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'No Selection', text: 'Silakan pilih minimal satu report untuk diexport!' });
+        return;
+    }
+    
+    var password = prompt('🔒 FDA Part 11 Compliance\n\nMasukkan password untuk export data terpilih:');
+    if (password === null) return;
+    if (!password) {
+        Swal.fire({ icon: 'warning', title: 'Password Required', text: 'Password diperlukan untuk export data!' });
+        return;
+    }
+    
+    var params = new URLSearchParams({
+        password: password,
+        ids: selectedIds.join(',')
+    });
+    
+    showLoading();
+    window.location.href = '/report/export-selected/?' + params.toString();
+    setTimeout(function() { hideLoading(); }, 3000);
+}
+
+// ============================================
+// PRINT REPORT
+// ============================================
+function printReport() {
+    var selectedIds = getSelectedIds();
+    if (selectedIds.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'No Selection', text: 'Silakan pilih minimal satu report untuk diprint!' });
+        return;
+    }
+    
+    Swal.fire({
+        title: '🖨️ Print Report',
+        html: `
+            <div style="text-align:left;padding:10px 0;">
+                <p style="font-weight:600;color:#0D47A1;">
+                    <i class="fas fa-file-alt"></i> FDA 21 CFR Part 11 Compliance
+                </p>
+                <p>Anda akan mencetak <strong>${selectedIds.length}</strong> report.</p>
+                <div style="background:#f8f9fa;padding:12px;border-radius:8px;margin:10px 0;">
+                    <label style="display:flex;align-items:center;cursor:pointer;font-size:14px;">
+                        <input type="checkbox" id="saveAfterPrint" checked style="width:18px;height:18px;margin-right:10px;accent-color:#0D47A1;">
+                        <span><i class="fas fa-save" style="color:#28a745;"></i> <strong>Save report setelah print</strong></span>
+                    </label>
+                </div>
+            </div>
+        `,
+        icon: 'question',
+        input: 'password',
+        inputLabel: '🔑 Masukkan Password',
+        inputPlaceholder: 'Masukkan password Anda',
+        showCancelButton: true,
+        confirmButtonText: '🖨️ Print & Save',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#0D47A1',
+        preConfirm: function(password) {
+            if (!password) {
+                Swal.showValidationMessage('Password required!');
+                return false;
+            }
+            return password;
+        }
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            var password = result.value;
+            var saveAfterPrint = document.getElementById('saveAfterPrint')?.checked || true;
+            
+            showLoading();
+            
+            fetch('/report/print/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    password: password,
+                    ids: selectedIds,
+                    save: saveAfterPrint
+                })
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    return response.text().then(function(text) {
+                        throw new Error('Server error: ' + response.status + ' - ' + text);
+                    });
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                hideLoading();
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Report berhasil diproses.',
+                        timer: 2000,
+                        timerProgressBar: true
+                    }).then(function() {
+                        openPrintWindow(data);
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: data.message || 'Gagal memproses print.',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            })
+            .catch(function(error) {
+                hideLoading();
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Terjadi kesalahan: ' + error.message,
+                    confirmButtonColor: '#d33'
+                });
+            });
+        }
+    });
+}
+
+// ============================================
+// OPEN PRINT WINDOW
+// ============================================
+function openPrintWindow(data) {
+    var printWindow = window.open('', '_blank', 'width=1100,height=900,menubar=yes,toolbar=yes');
+    if (!printWindow) {
+        Swal.fire({ icon: 'error', title: 'Popup Blocked!', text: 'Mohon izinkan popup untuk website ini.' });
+        return;
+    }
+    
+    var company = data.company || { name: 'Company', address: '', phone: '', email: '' };
+    var records = data.data || [];
+    var printedBy = data.printed_by || 'Unknown';
+    var printedAt = data.printed_at || new Date().toLocaleString('id-ID');
+    var totalRecords = data.total_records || records.length;
+    var isSaved = data.saved || false;
+    var savedCount = data.saved_count || 0;
+    
+    var html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Report Print - FDA Part 11</title>
+        <meta charset="UTF-8">
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { font-family: Arial, sans-serif; padding: 15px; background: white; font-size: 10px; }
+            .container { max-width: 1200px; margin: 0 auto; }
+            .header { text-align: center; border-bottom: 3px solid #0D47A1; padding-bottom: 12px; margin-bottom: 15px; }
+            .header h1 { color: #0D47A1; font-size: 18px; }
+            .header .fda { color: #FF6F00; font-weight: bold; font-size: 10px; }
+            .info { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 9px; padding: 8px 14px; background: #f8f9fa; border-radius: 6px; }
+            .info strong { color: #0D47A1; }
+            .save-badge { display: inline-block; background: ${isSaved ? '#28a745' : '#6c757d'}; color: white; padding: 2px 10px; border-radius: 4px; font-size: 8px; }
+            table { width: 100%; border-collapse: collapse; font-size: 9px; }
+            table thead th { background: #0D47A1; color: white; padding: 5px 4px; text-align: center; border: 1px solid #0D47A1; font-size: 8px; }
+            table tbody td { padding: 4px 4px; border: 1px solid #dee2e6; text-align: center; font-size: 8px; }
+            table tbody tr:nth-child(even) { background: #f8f9fa; }
+            .badge { background: #E3F2FD; color: #0D47A1; padding: 1px 6px; border-radius: 3px; font-weight: 600; font-size: 7px; }
+            .footer { margin-top: 15px; text-align: center; font-size: 8px; color: #888; border-top: 1px solid #dee2e6; padding-top: 12px; }
+            .photo-print { max-width: 35px; max-height: 35px; border-radius: 4px; border: 1px solid #dee2e6; object-fit: cover; }
+            @media print { 
+                body { padding: 10px; }
+                table thead th { background: #0D47A1 !important; color: white !important; -webkit-print-color-adjust: exact !important; }
+                table tbody tr:nth-child(even) td { background: #f8f9fa !important; -webkit-print-color-adjust: exact !important; }
+                .info { background: #f8f9fa !important; -webkit-print-color-adjust: exact !important; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>${company.name || 'Company Name'}</h1>
+                <p>${company.address || ''}</p>
+                <p>Tel: ${company.phone || ''} ${company.email ? '| Email: ' + company.email : ''}</p>
+                <p class="fda">FDA 21 CFR Part 11 Compliant</p>
+            </div>
+            <div class="info">
+                <div>
+                    <strong>Dicetak Oleh:</strong> ${printedBy}<br>
+                    <strong>Tanggal:</strong> ${printedAt}
+                    <span class="save-badge">${isSaved ? '✅ Tersimpan' : '❌ Tidak Tersimpan'}</span>
+                </div>
+                <div>
+                    <strong>Total Records:</strong> ${totalRecords}
+                    ${isSaved ? `<br><strong>Tersimpan:</strong> ${savedCount} records` : ''}
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>No. Transaksi</th>
+                        <th>Nama Barang</th>
+                        <th>ID Barang</th>
+                        <th>Lot</th>
+                        <th>Kustomer</th>
+                        <th>Supplier</th>
+                        <th>Berat (kg)</th>
+                        <th>Tanggal</th>
+                        <th>Operator</th>
+                        <th>Foto</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    if (records.length === 0) {
+        html += `<tr><td colspan="11" style="text-align:center;padding:20px;color:#6c757d;">No data available</td></tr>`;
+    } else {
+        records.forEach(function(item, index) {
+            var photoUrl = item.photo || '';
+            // ✅ Perbaiki URL foto di print
+            if (photoUrl && !photoUrl.startsWith('http://') && !photoUrl.startsWith('https://') && 
+                !photoUrl.startsWith('/media/') && !photoUrl.startsWith('/static/')) {
+                photoUrl = '/media/' + photoUrl;
+            }
+            var photoHtml = photoUrl ? 
+                '<img src="' + photoUrl + '" class="photo-print" alt="Photo" onerror="this.style.display=\'none\'">' : 
+                '<span style="color:#999;font-size:7px;">-</span>';
+            html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><span class="badge">${item.no_transaksi || 'N/A'}</span></td>
+                    <td>${item.barang || 'N/A'}</td>
+                    <td>${item.barang_id || 'N/A'}</td>
+                    <td>${item.lot || 'N/A'}</td>
+                    <td>${item.kustomer || 'N/A'}</td>
+                    <td>${item.supplier || 'N/A'}</td>
+                    <td>${item.weight || '0'}</td>
+                    <td>${item.tanggal || 'N/A'}</td>
+                    <td>${item.operator || 'N/A'}</td>
+                    <td>${photoHtml}</td>
+                </tr>
+            `;
+        });
+    }
+    
+    html += `
+                </tbody>
+            </table>
+            <div class="footer">
+                <p>This document is FDA 21 CFR Part 11 compliant. All actions are audited.</p>
+                <p style="font-size:7px;color:#aaa;">Generated by Weighbridge System v2.0</p>
+            </div>
+        </div>
+        <script>
+            window.onload = function() {
+                setTimeout(function() {
+                    window.print();
+                    window.onafterprint = function() {
+                        setTimeout(function() { window.close(); }, 1000);
+                    };
+                }, 600);
+            };
+        <\/script>
+    </body>
+    </html>
+    `;
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
+}
+
+// ============================================
+// DOM READY
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    var inputs = document.querySelectorAll('#filterForm input');
+    inputs.forEach(function(input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                document.getElementById('filterForm').submit();
+            }
+        });
+    });
+    
+    hideLoading();
+    updateSelectionCount();
+    console.log('✅ Report Management loaded successfully');
+});
+</script>
+{% endblock %}

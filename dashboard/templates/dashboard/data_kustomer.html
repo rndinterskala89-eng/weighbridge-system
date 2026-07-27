@@ -1,0 +1,1199 @@
+<!-- dashboard/templates/dashboard/data_kustomer.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --kustomer-primary: #2ECC71;
+        --kustomer-dark: #27AE60;
+        --kustomer-light: #D5F5E3;
+    }
+
+    /* ============================================
+       FIX: HILANGKAN SCROLL HALAMAN
+       ============================================ */
+    html, body {
+        height: 100%;
+        overflow: hidden !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* ============================================
+       CONTAINER UTAMA - FULL VIEWPORT
+       ============================================ */
+    .data-container {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 10px 15px 10px 15px;
+        background: #f5f7fa;
+    }
+
+    /* ============================================
+       CARD WRAPPER - FLEX COLUMN
+       ============================================ */
+    .card-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        min-height: 0;
+    }
+
+    /* ============================================
+       HEADER - TETAP TERLIHAT (TIDAK SCROLL)
+       ============================================ */
+    .card-header-fixed {
+        flex-shrink: 0;
+        background: white;
+        border-bottom: 2px solid #D5F5E3;
+        padding: 12px 20px;
+        font-weight: 600;
+        border-radius: 12px 12px 0 0;
+        z-index: 100;
+        min-height: 60px;
+    }
+
+    /* ============================================
+       SEARCH - TETAP TERLIHAT (TIDAK SCROLL)
+       ============================================ */
+    .search-fixed {
+        flex-shrink: 0;
+        background: white;
+        padding: 10px 20px;
+        border-bottom: 1px solid #e9ecef;
+        z-index: 99;
+    }
+
+    .search-section {
+        background: #F0FDF4;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 0;
+        border: 1px solid #D5F5E3;
+    }
+
+    .search-section .form-control {
+        border: 2px solid #D5F5E3;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    .search-section .form-control:focus {
+        border-color: #2ECC71;
+        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+    }
+    .search-section label {
+        font-weight: 600;
+        color: #1B7A34;
+        font-size: 12px;
+        margin-bottom: 3px;
+    }
+
+    /* ============================================
+       TABLE - SATU-SATUNYA YANG SCROLL
+       ============================================ */
+    .table-scroll {
+        flex: 1;
+        overflow: auto;
+        padding: 0 20px 0 20px;
+        min-height: 0;
+    }
+
+    .table-scroll::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    .table-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    .table-scroll::-webkit-scrollbar-thumb {
+        background: #2ECC71;
+        border-radius: 4px;
+    }
+    .table-scroll::-webkit-scrollbar-thumb:hover {
+        background: #27AE60;
+    }
+
+    .table-scroll table {
+        margin-bottom: 0;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table-scroll thead {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+    .table-scroll thead th {
+        background: #D5F5E3 !important;
+        color: #1B7A34;
+        font-weight: 600;
+        font-size: 12px;
+        border-bottom: 2px solid #27AE60;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        padding: 8px 12px;
+        white-space: nowrap;
+    }
+
+    .table-scroll tbody td {
+        padding: 8px 12px;
+        vertical-align: middle;
+        font-size: 13px;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .table-scroll tbody td:last-child {
+        max-width: none;
+        white-space: nowrap;
+    }
+
+    .table-scroll tbody tr:hover {
+        background-color: rgba(46, 204, 113, 0.06);
+    }
+
+    /* ============================================
+       PAGINATION - TETAP TERLIHAT (TIDAK SCROLL)
+       ============================================ */
+    .pagination-fixed {
+        flex-shrink: 0;
+        background: white;
+        padding: 10px 20px;
+        border-top: 1px solid #e9ecef;
+        border-radius: 0 0 12px 12px;
+        z-index: 97;
+        min-height: 60px;
+    }
+
+    .pagination-fixed .pagination {
+        margin: 0;
+    }
+    .pagination-fixed .page-link {
+        color: #2ECC71;
+        border-color: #dee2e6;
+        padding: 5px 12px;
+        font-size: 13px;
+    }
+    .pagination-fixed .page-item.active .page-link {
+        background: #2ECC71;
+        border-color: #2ECC71;
+        color: white;
+    }
+    .pagination-fixed .page-item.disabled .page-link {
+        color: #6c757d;
+    }
+
+    /* ============================================
+       BUTTON STYLES
+       ============================================ */
+    .btn-kustomer {
+        background: #2ECC71;
+        color: white;
+        border: none;
+        padding: 8px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-kustomer:hover {
+        background: #27AE60;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+        color: white;
+    }
+
+    .btn-export {
+        background: #27AE60;
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+        font-size: 12px;
+    }
+    .btn-export:hover {
+        background: #1E8449;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-import {
+        background: #8E44AD;
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+        font-size: 12px;
+    }
+    .btn-import:hover {
+        background: #6C3483;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-search {
+        background: #2ECC71;
+        color: white;
+        border: none;
+        padding: 6px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+        height: 38px;
+    }
+    .btn-search:hover {
+        background: #27AE60;
+        color: white;
+    }
+
+    .btn-reset {
+        background: #E8ECF1;
+        color: #2C3E50;
+        border: none;
+        padding: 6px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+        height: 38px;
+    }
+    .btn-reset:hover {
+        background: #D5D8DC;
+    }
+
+    .btn-action {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        margin: 0 2px;
+        transition: all 0.3s;
+    }
+    .btn-action:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-edit {
+        background: #2ECC71;
+        color: white;
+        border: none;
+    }
+    .btn-edit:hover {
+        background: #27AE60;
+        color: white;
+    }
+
+    .btn-delete {
+        background: #E74C3C;
+        color: white;
+        border: none;
+    }
+    .btn-delete:hover {
+        background: #C0392B;
+    }
+
+    .badge-kustomer {
+        background: #2ECC71;
+        color: white;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 11px;
+    }
+
+    .btn-secondary-custom {
+        background: #E8ECF1;
+        color: #2C3E50;
+        border: none;
+        padding: 8px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-secondary-custom:hover {
+        background: #D5D8DC;
+    }
+
+    .action-buttons-top {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    /* ============================================
+       MODAL
+       ============================================ */
+    .modal-content {
+        border-radius: 16px;
+        border: 3px solid #2ECC71;
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #2ECC71, #27AE60);
+        color: white;
+        border-radius: 13px 13px 0 0;
+    }
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+    .modal-body label {
+        font-weight: 600;
+        color: #1B7A34;
+    }
+    .modal-body input, .modal-body select, .modal-body textarea {
+        border: 2px solid #D5F5E3;
+        border-radius: 8px;
+        padding: 8px 12px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+    .modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus {
+        border-color: #2ECC71;
+        box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+        outline: none;
+    }
+
+    /* ============================================
+       LOADING OVERLAY
+       ============================================ */
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(4px);
+    }
+    .loading-overlay.active { display: flex !important; }
+
+    .loading-content {
+        background: white;
+        padding: 30px 40px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        min-width: 250px;
+    }
+
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #2ECC71;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 768px) {
+        .data-container {
+            padding: 6px 10px;
+        }
+        .card-header-fixed {
+            padding: 8px 12px;
+            min-height: 50px;
+        }
+        .card-header-fixed h5 {
+            font-size: 14px;
+        }
+        .search-fixed {
+            padding: 6px 12px;
+        }
+        .search-section {
+            padding: 8px 12px;
+        }
+        .table-scroll {
+            padding: 0 10px 0 10px;
+        }
+        .table-scroll thead th,
+        .table-scroll tbody td {
+            font-size: 11px;
+            padding: 5px 8px;
+        }
+        .pagination-fixed {
+            padding: 6px 10px;
+            min-height: 50px;
+        }
+        .action-buttons-top .btn {
+            font-size: 11px;
+            padding: 4px 12px;
+        }
+        .btn-kustomer {
+            padding: 4px 16px;
+            font-size: 12px;
+        }
+        .btn-export, .btn-import {
+            padding: 4px 12px;
+            font-size: 11px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .data-container {
+            padding: 4px 6px;
+        }
+        .card-header-fixed h5 {
+            font-size: 13px;
+        }
+        .search-section .form-control {
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+        .search-section label {
+            font-size: 10px;
+        }
+        .table-scroll thead th {
+            font-size: 9px;
+            padding: 4px 4px;
+        }
+        .table-scroll tbody td {
+            font-size: 9px;
+            padding: 4px 4px;
+        }
+        .btn-action {
+            padding: 2px 6px;
+            font-size: 9px;
+        }
+        .pagination-fixed .page-link {
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+        .badge-kustomer {
+            font-size: 8px;
+            padding: 2px 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="data-container">
+    <div class="card-wrapper">
+        <!-- HEADER - TETAP TERLIHAT -->
+        <div class="card-header-fixed d-flex justify-content-between align-items-center flex-wrap" style="gap:10px;">
+            <h5 class="mb-0"><i class="fas fa-users" style="color:#2ECC71;"></i> Data Kustomer</h5>
+            <div class="action-buttons-top">
+                <button class="btn btn-kustomer" data-bs-toggle="modal" data-bs-target="#addKustomerModal">
+                    <i class="fas fa-plus"></i> Tambah
+                </button>
+                <button class="btn btn-export" onclick="exportKustomer()">
+                    <i class="fas fa-file-excel"></i> Export
+                </button>
+                <button class="btn btn-import" onclick="document.getElementById('importFile').click()">
+                    <i class="fas fa-file-import"></i> Import
+                </button>
+                <input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importKustomer(this)">
+            </div>
+        </div>
+
+        <!-- SEARCH - TETAP TERLIHAT -->
+        <div class="search-fixed">
+            <div class="search-section">
+                <form method="GET" action="" id="searchForm">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4 col-sm-6 col-12">
+                            <label for="search_nama"><i class="fas fa-user"></i> Nama Kustomer</label>
+                            <input type="text" class="form-control" id="search_nama" name="search_nama" placeholder="Cari nama kustomer..." value="{{ request.GET.search_nama }}">
+                        </div>
+                        <div class="col-md-4 col-sm-6 col-12">
+                            <label for="search_id"><i class="fas fa-id-card"></i> ID Kustomer</label>
+                            <input type="text" class="form-control" id="search_id" name="search_id" placeholder="Cari ID..." value="{{ request.GET.search_id }}">
+                        </div>
+                        <div class="col-md-4 col-sm-6 col-12">
+                            <label>&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-search flex-grow-1"><i class="fas fa-filter"></i> Filter</button>
+                                <button type="button" class="btn btn-reset" onclick="resetSearch()"><i class="fas fa-undo"></i> Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TABLE - SATU-SATUNYA YANG SCROLL -->
+        <div class="table-scroll">
+            <table class="table table-hover table-striped" id="kustomerTable">
+                <thead>
+                    <tr>
+                        <th style="min-width:80px;">ID Kustomer</th>
+                        <th style="min-width:120px;">Nama</th>
+                        <th style="min-width:150px;">Alamat</th>
+                        <th style="min-width:100px;">Telepon</th>
+                        <th style="min-width:150px;">Email</th>
+                        <th style="min-width:90px;">Created</th>
+                        <th style="min-width:90px;text-align:center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in page_obj %}
+                    <tr>
+                        <td><strong>{{ item.id_kustomer }}</strong></td>
+                        <td>{{ item.nama_kustomer }}</td>
+                        <td title="{{ item.alamat }}">{{ item.alamat|truncatechars:25 }}</td>
+                        <td>{{ item.telepon }}</td>
+                        <td>{{ item.email|default:"-" }}</td>
+                        <td>{{ item.created_at|date:"Y-m-d" }}</td>
+                        <td style="text-align:center;">
+                            <button class="btn btn-action btn-edit" onclick="editKustomer('{{ item.id_kustomer }}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="deleteKustomer('{{ item.id_kustomer }}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-users fa-2x text-muted d-block"></i>
+                            <span class="text-muted">No kustomer data available</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATION - TETAP TERLIHAT -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination-fixed">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1{% if request.GET.search_nama %}&search_nama={{ request.GET.search_nama }}{% endif %}{% if request.GET.search_id %}&search_id={{ request.GET.search_id }}{% endif %}">&laquo; First</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search_nama %}&search_nama={{ request.GET.search_nama }}{% endif %}{% if request.GET.search_id %}&search_id={{ request.GET.search_id }}{% endif %}">Previous</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+                    
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search_nama %}&search_nama={{ request.GET.search_nama }}{% endif %}{% if request.GET.search_id %}&search_id={{ request.GET.search_id }}{% endif %}">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search_nama %}&search_nama={{ request.GET.search_nama }}{% endif %}{% if request.GET.search_id %}&search_id={{ request.GET.search_id }}{% endif %}">Last &raquo;</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                    <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Kustomer Modal -->
+<div class="modal fade" id="addKustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> Tambah Kustomer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-kustomer">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Kustomer Modal -->
+<div class="modal fade" id="editKustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Edit Kustomer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editKustomerForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id_kustomer" name="id_kustomer">
+                    <div class="mb-3">
+                        <label for="edit_id_kustomer_input" class="form-label">ID Kustomer</label>
+                        <input type="text" class="form-control" id="edit_id_kustomer_input" name="id_kustomer_display" readonly style="background:#f5f5f5;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_nama_kustomer" class="form-label">Nama Kustomer <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_nama_kustomer" name="nama_kustomer" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_alamat" class="form-label">Alamat</label>
+                        <textarea class="form-control" id="edit_alamat" name="alamat" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_telepon" class="form-label">Telepon</label>
+                        <input type="text" class="form-control" id="edit_telepon" name="telepon">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="edit_email" name="email">
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-lock"></i> <strong>FDA 21 CFR Part 11</strong><br>
+                        <small>Masukkan password untuk verifikasi sebelum menyimpan perubahan.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password" class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="edit_password" name="edit_password" placeholder="Masukkan password Anda..." required>
+                    </div>
+                    <div id="editPasswordError" class="text-danger small d-none">
+                        <i class="fas fa-exclamation-circle"></i> Invalid password. Please try again.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-kustomer" id="btnEditSubmit">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Password Modal for Delete -->
+<div class="modal fade" id="passwordModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:3px solid #E74C3C;">
+            <div class="modal-header" style="background:#E74C3C;color:white;border-radius:13px 13px 0 0;">
+                <h6 class="modal-title"><i class="fas fa-lock"></i> FDA Part 11 - Password Required</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:brightness(0) invert(1);"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-shield-alt fa-3x" style="color:#E74C3C;margin-bottom:10px;"></i>
+                <p class="text-muted">Enter your password to verify your identity.</p>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="passwordInput" placeholder="Enter your password..." style="border:2px solid #FFE0B2;border-radius:8px;padding:10px;">
+                </div>
+                <div id="passwordError" class="text-danger small d-none">
+                    <i class="fas fa-exclamation-circle"></i> Invalid password. Please try again.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top:none;padding-top:0;padding-bottom:16px;">
+                <button class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" id="btnConfirmPassword"><i class="fas fa-check"></i> Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h4><i class="fas fa-spinner fa-spin"></i> Processing...</h4>
+        <p>Please wait while we process your request</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// ============================================
+// CSRF TOKEN
+// ============================================
+function getCSRFToken() {
+    var cookieValue = null;
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            cookieValue = cookie.substring(10);
+            break;
+        }
+    }
+    if (!cookieValue) {
+        var tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (tokenInput) {
+            cookieValue = tokenInput.value;
+        }
+    }
+    return cookieValue;
+}
+
+// ============================================
+// TOAST NOTIFICATION
+// ============================================
+function showToast(message, type) {
+    type = type || 'info';
+    var colors = { 
+        success: '#2ECC71', 
+        danger: '#E74C3C', 
+        warning: '#F39C12', 
+        info: '#3498DB' 
+    };
+    
+    var existing = document.querySelector('.custom-toast');
+    if (existing) existing.remove();
+    
+    var toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:' + (colors[type] || '#3498DB') + ';color:white;padding:12px 28px;border-radius:12px;font-weight:500;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.2);opacity:0;transition:all 0.4s ease;max-width:90%;text-align:center;';
+    
+    var iconClass = type === 'success' ? 'fa-check-circle' : 
+                    type === 'danger' ? 'fa-exclamation-circle' : 
+                    type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    toast.innerHTML = '<i class="fas ' + iconClass + ' me-2"></i>' + message;
+    document.body.appendChild(toast);
+    
+    setTimeout(function() { toast.style.opacity = '1'; }, 100);
+    setTimeout(function() { 
+        toast.style.opacity = '0'; 
+        setTimeout(function() { toast.remove(); }, 400); 
+    }, 3500);
+}
+
+// ============================================
+// LOADING FUNCTIONS
+// ============================================
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// ============================================
+// SEARCH FUNCTIONS
+// ============================================
+function resetSearch() {
+    document.getElementById('search_nama').value = '';
+    document.getElementById('search_id').value = '';
+    document.getElementById('searchForm').submit();
+}
+
+// Auto submit on Enter key
+document.addEventListener('DOMContentLoaded', function() {
+    var inputs = document.querySelectorAll('#searchForm input');
+    inputs.forEach(function(input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                document.getElementById('searchForm').submit();
+            }
+        });
+    });
+});
+
+// ============================================
+// DELETE KUSTOMER - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+var deleteId = null;
+
+function deleteKustomer(id) {
+    Swal.fire({
+        title: '⚠️ Hapus Kustomer',
+        text: 'Yakin ingin menghapus kustomer ini? Tindakan ini akan dicatat di audit trail.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E74C3C',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            deleteId = id;
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordError').classList.add('d-none');
+            var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+            modal.show();
+        }
+    });
+}
+
+document.getElementById('btnConfirmPassword').addEventListener('click', function() {
+    var password = document.getElementById('passwordInput').value;
+    if (!password) {
+        document.getElementById('passwordError').classList.remove('d-none');
+        document.getElementById('passwordError').textContent = 'Password is required.';
+        return;
+    }
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:delete_kustomer' %}";
+    
+    showLoading();
+    document.getElementById('btnConfirmPassword').disabled = true;
+    document.getElementById('btnConfirmPassword').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+            id: String(deleteId),
+            password: password 
+        })
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            document.getElementById('passwordError').classList.remove('d-none');
+            document.getElementById('passwordError').textContent = data.message;
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'danger');
+        document.getElementById('passwordError').classList.remove('d-none');
+        document.getElementById('passwordError').textContent = error.message;
+    })
+    .finally(function() {
+        document.getElementById('btnConfirmPassword').disabled = false;
+        document.getElementById('btnConfirmPassword').innerHTML = '<i class="fas fa-check"></i> Confirm';
+    });
+});
+
+document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('btnConfirmPassword').click();
+    }
+});
+
+// ============================================
+// EDIT KUSTOMER - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+function editKustomer(id) {
+    Swal.fire({
+        title: '🔒 Verifikasi Password',
+        text: 'Masukkan password Anda untuk mengedit data kustomer',
+        icon: 'question',
+        input: 'password',
+        inputPlaceholder: 'Masukkan password Anda',
+        inputAttributes: {
+            autocomplete: 'current-password'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Verifikasi',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#2ECC71',
+        cancelButtonColor: '#6c757d',
+        preConfirm: function(password) {
+            if (!password) {
+                Swal.showValidationMessage('Password required!');
+                return false;
+            }
+            return password;
+        }
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            var password = result.value;
+            fetchEditKustomer(id, password);
+        }
+    });
+}
+
+function fetchEditKustomer(id, password) {
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    showLoading();
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:get_kustomer' 0 %}".replace('0', id) + '?password=' + encodeURIComponent(password);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'include'
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            document.getElementById('edit_id_kustomer').value = data.data.id_kustomer;
+            document.getElementById('edit_id_kustomer_input').value = data.data.id_kustomer;
+            document.getElementById('edit_nama_kustomer').value = data.data.nama_kustomer;
+            document.getElementById('edit_alamat').value = data.data.alamat || '';
+            document.getElementById('edit_telepon').value = data.data.telepon || '';
+            document.getElementById('edit_email').value = data.data.email || '';
+            document.getElementById('edit_password').value = password;
+            
+            var modal = new bootstrap.Modal(document.getElementById('editKustomerModal'));
+            modal.show();
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            if (data.message.toLowerCase().includes('password')) {
+                editKustomer(id);
+            }
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'danger');
+    });
+}
+
+// ============================================
+// EDIT KUSTOMER FORM SUBMIT - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+document.getElementById('editKustomerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var password = document.getElementById('edit_password').value;
+    if (!password) {
+        document.getElementById('editPasswordError').classList.remove('d-none');
+        document.getElementById('editPasswordError').textContent = 'Password is required for FDA compliance.';
+        return;
+    }
+    
+    var formData = new FormData(this);
+    var data = {
+        id_kustomer: formData.get('id_kustomer'),
+        nama_kustomer: formData.get('nama_kustomer'),
+        alamat: formData.get('alamat'),
+        telepon: formData.get('telepon'),
+        email: formData.get('email'),
+        password: password
+    };
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    showLoading();
+    document.getElementById('btnEditSubmit').disabled = true;
+    document.getElementById('btnEditSubmit').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:update_kustomer' %}";
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('editKustomerModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            if (data.message.toLowerCase().includes('password')) {
+                document.getElementById('editPasswordError').classList.remove('d-none');
+                document.getElementById('editPasswordError').textContent = data.message;
+            }
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'danger');
+    })
+    .finally(function() {
+        document.getElementById('btnEditSubmit').disabled = false;
+        document.getElementById('btnEditSubmit').innerHTML = 'Update';
+    });
+});
+
+// Clear password error on typing
+document.getElementById('edit_password').addEventListener('input', function() {
+    document.getElementById('editPasswordError').classList.add('d-none');
+});
+
+// ============================================
+// EXPORT KUSTOMER - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+function exportKustomer() {
+    var password = prompt('🔒 FDA Part 11 Compliance\n\nMasukkan password untuk export data kustomer:');
+    if (password === null) return;
+    if (!password) {
+        showToast('Password required for export!', 'warning');
+        return;
+    }
+    
+    var searchNama = document.getElementById('search_nama')?.value || '';
+    var searchId = document.getElementById('search_id')?.value || '';
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:export_kustomer_excel' %}";
+    var params = new URLSearchParams({
+        password: password,
+        search_nama: searchNama,
+        search_id: searchId
+    });
+    
+    showLoading();
+    window.location.href = url + '?' + params.toString();
+    setTimeout(function() { hideLoading(); }, 5000);
+}
+
+// ============================================
+// IMPORT KUSTOMER - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+function importKustomer(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    var file = input.files[0];
+    var validTypes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'text/csv'
+    ];
+    
+    if (!validTypes.includes(file.type) && !file.name.endsWith('.xlsx') && !file.name.endsWith('.xls') && !file.name.endsWith('.csv')) {
+        showToast('Format file tidak didukung. Gunakan .xlsx, .xls, atau .csv', 'danger');
+        input.value = '';
+        return;
+    }
+    
+    var password = prompt('🔒 FDA Part 11 Compliance\n\nMasukkan password untuk import data kustomer:');
+    if (password === null) {
+        input.value = '';
+        return;
+    }
+    if (!password) {
+        showToast('Password required for import!', 'warning');
+        input.value = '';
+        return;
+    }
+    
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('password', password);
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        input.value = '';
+        return;
+    }
+    
+    showLoading();
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:import_kustomer_excel' %}";
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: formData
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        input.value = '';
+        if (data.status === 'success') {
+            var msg = data.message || 'Import data berhasil!';
+            if (data.imported > 0) msg += ' (' + data.imported + ' baru ditambahkan)';
+            if (data.updated > 0) msg += ' (' + data.updated + ' diperbarui)';
+            showToast(msg, 'success');
+            setTimeout(function() { location.reload(); }, 1500);
+        } else {
+            showToast('Error: ' + (data.message || 'Import failed'), 'danger');
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        input.value = '';
+        showToast('Error: ' + error.message, 'danger');
+    });
+}
+
+// ============================================
+// DOM READY
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Data Kustomer page loaded');
+    hideLoading();
+});
+</script>
+{% endblock %}

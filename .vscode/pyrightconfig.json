@@ -1,0 +1,12 @@
+{
+    "python.analysis.diagnosticSeverity": {
+        "reportMissingModuleSource": "none",
+        "reportOptionalMemberAccess": "none",
+        "reportOptionalCall": "none"
+    },
+    "python.analysis.typeCheckingMode": "basic",
+    "python.defaultInterpreterPath": "${workspaceFolder}/venv/Scripts/python.exe",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ]
+}

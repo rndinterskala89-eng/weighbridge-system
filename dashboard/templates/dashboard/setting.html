@@ -1,0 +1,864 @@
+<!-- dashboard/templates/dashboard/setting.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Settings - Weighbridge System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================
+       FIX: HILANGKAN SCROLL HALAMAN
+       ============================================ */
+    html, body {
+        height: 100%;
+        overflow: hidden !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* ============================================
+       CONTAINER UTAMA - FULL VIEWPORT
+       ============================================ */
+    .settings-wrapper {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: #f0f2f5;
+        padding: 10px 15px;
+    }
+
+    /* ============================================
+       HEADER - TETAP TERLIHAT
+       ============================================ */
+    .settings-header {
+        flex-shrink: 0;
+        padding: 12px 0 8px 0;
+        border-bottom: 2px solid #0D47A1;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .settings-header h2 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0D47A1;
+        margin: 0;
+    }
+
+    .settings-header h2 i {
+        margin-right: 10px;
+    }
+
+    .settings-header .badge {
+        font-size: 12px;
+        padding: 6px 14px;
+    }
+
+    /* ============================================
+       COMPANY INFO DISPLAY
+       ============================================ */
+    .company-info-display {
+        flex-shrink: 0;
+        background: white;
+        border-radius: 12px;
+        padding: 16px 24px;
+        margin-bottom: 12px;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px 40px;
+        align-items: center;
+    }
+
+    .company-info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .company-info-item .label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 13px;
+        min-width: 60px;
+    }
+
+    .company-info-item .value {
+        font-weight: 600;
+        color: #0D47A1;
+        font-size: 14px;
+    }
+
+    .company-info-item .value a {
+        color: #0D47A1;
+        text-decoration: none;
+    }
+
+    .company-info-item .value a:hover {
+        text-decoration: underline;
+    }
+
+    .company-info-item .icon-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e3f2fd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0D47A1;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .company-info-divider {
+        width: 1px;
+        height: 30px;
+        background: #dee2e6;
+        flex-shrink: 0;
+    }
+
+    /* ============================================
+       CONTENT - SCROLLABLE AREA
+       ============================================ */
+    .settings-content {
+        flex: 1;
+        overflow: auto;
+        padding: 0 5px 10px 5px;
+        min-height: 0;
+    }
+
+    .settings-content::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .settings-content::-webkit-scrollbar-track {
+        background: #e9ecef;
+        border-radius: 3px;
+    }
+    .settings-content::-webkit-scrollbar-thumb {
+        background: #0D47A1;
+        border-radius: 3px;
+    }
+    .settings-content::-webkit-scrollbar-thumb:hover {
+        background: #0a3a84;
+    }
+
+    /* ============================================
+       CARDS
+       ============================================ */
+    .settings-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        padding: 22px 28px;
+        margin-bottom: 18px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s;
+    }
+
+    .settings-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .settings-card h4 {
+        color: #0D47A1;
+        font-weight: 700;
+        font-size: 17px;
+        margin-bottom: 18px;
+        border-bottom: 2px solid #e3f2fd;
+        padding-bottom: 10px;
+    }
+
+    .settings-card h4 i {
+        color: #0D47A1;
+        margin-right: 10px;
+    }
+
+    /* ============================================
+       FORM ELEMENTS
+       ============================================ */
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        font-size: 13px;
+        color: #495057;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .form-group label i {
+        margin-right: 6px;
+        color: #0D47A1;
+        width: 16px;
+    }
+
+    .form-group .form-control {
+        border-radius: 8px;
+        border: 1.5px solid #ced4da;
+        padding: 8px 14px;
+        font-size: 13px;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .form-group .form-control:focus {
+        border-color: #0D47A1;
+        box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.15);
+        outline: none;
+    }
+
+    .form-group .form-control[readonly] {
+        background: #f8f9fa;
+        cursor: not-allowed;
+    }
+
+    .form-group textarea.form-control {
+        resize: vertical;
+        min-height: 60px;
+    }
+
+    /* ============================================
+       BUTTONS
+       ============================================ */
+    .btn-primary {
+        background: #0D47A1;
+        border-color: #0D47A1;
+        padding: 8px 28px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-primary:hover {
+        background: #0a3a84;
+        border-color: #0a3a84;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(13, 71, 161, 0.3);
+    }
+
+    .btn-success {
+        background: #28a745;
+        border-color: #28a745;
+        padding: 8px 28px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-success:hover {
+        background: #218838;
+        border-color: #1e7e34;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    /* ============================================
+       STATUS BADGE
+       ============================================ */
+    .status-badge {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-badge.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .status-badge.danger {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    .status-badge.warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    .status-badge.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    /* ============================================
+       TEST RESULT
+       ============================================ */
+    .test-result {
+        margin-top: 14px;
+        padding: 14px 18px;
+        border-radius: 8px;
+        display: none;
+        font-size: 14px;
+    }
+    .test-result.show {
+        display: block;
+        animation: fadeIn 0.4s ease;
+    }
+    .test-result.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .test-result.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    .test-result .details {
+        background: rgba(255,255,255,0.7);
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 8px;
+        font-size: 12px;
+        max-height: 150px;
+        overflow: auto;
+        font-family: monospace;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================
+       LOGO PREVIEW
+       ============================================ */
+    .company-logo-preview {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .company-logo {
+        max-width: 120px;
+        max-height: 80px;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 4px;
+        background: white;
+        object-fit: contain;
+    }
+    .company-logo-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 120px;
+        height: 80px;
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        color: #adb5bd;
+        font-size: 12px;
+    }
+
+    /* ============================================
+       FILE INPUT CUSTOM
+       ============================================ */
+    .custom-file-input {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .custom-file-input input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    .custom-file-label {
+        display: block;
+        padding: 8px 14px;
+        background: #f8f9fa;
+        border: 1.5px solid #ced4da;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+    }
+    .custom-file-label:hover {
+        border-color: #0D47A1;
+        background: #e3f2fd;
+    }
+    .custom-file-label i {
+        margin-right: 8px;
+        color: #0D47A1;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 768px) {
+        .settings-wrapper {
+            padding: 8px 10px;
+        }
+        .settings-header h2 {
+            font-size: 18px;
+        }
+        .settings-card {
+            padding: 16px;
+        }
+        .settings-card h4 {
+            font-size: 15px;
+        }
+        .action-buttons .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+        .form-group label {
+            font-size: 12px;
+        }
+        .form-group .form-control {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        .company-info-display {
+            padding: 12px 16px;
+            gap: 12px 20px;
+        }
+        .company-info-item .label {
+            font-size: 12px;
+            min-width: 50px;
+        }
+        .company-info-item .value {
+            font-size: 13px;
+        }
+        .company-info-divider {
+            display: none;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .settings-wrapper {
+            padding: 5px 6px;
+        }
+        .settings-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .settings-header h2 {
+            font-size: 16px;
+        }
+        .settings-card {
+            padding: 12px;
+        }
+        .settings-card h4 {
+            font-size: 13px;
+        }
+        .action-buttons .btn {
+            font-size: 12px;
+            padding: 6px 14px;
+            min-width: 80px;
+        }
+        .company-info-display {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 14px;
+        }
+        .company-info-item {
+            width: 100%;
+        }
+        .company-info-item .icon-circle {
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-wrapper">
+    <!-- HEADER - TETAP TERLIHAT -->
+    <div class="settings-header">
+        <h2><i class="fas fa-cogs"></i> Settings</h2>
+        <div>
+            <span class="badge bg-primary"><i class="fas fa-shield-alt"></i> FDA Part 11</span>
+            <span class="badge bg-success ms-1"><i class="fas fa-check-circle"></i> Secure</span>
+        </div>
+    </div>
+
+    <!-- ============================================
+         COMPANY INFO DISPLAY
+         ============================================ -->
+    <div class="company-info-display">
+        <!-- Phone -->
+        <div class="company-info-item">
+            <div class="icon-circle">
+                <i class="fas fa-phone"></i>
+            </div>
+            <span class="label">Phone</span>
+            <span class="value">
+                {% if company and company.phone %}
+                    {{ company.phone }}
+                {% else %}
+                    (021) 22522992
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="company-info-divider"></div>
+
+        <!-- Email -->
+        <div class="company-info-item">
+            <div class="icon-circle">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <span class="label">Email</span>
+            <span class="value">
+                {% if company and company.email %}
+                    <a href="mailto:{{ company.email }}">{{ company.email }}</a>
+                {% else %}
+                    <a href="mailto:sales@interskala.com">sales@interskala.com</a>
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="company-info-divider"></div>
+
+        <!-- Website -->
+        <div class="company-info-item">
+            <div class="icon-circle">
+                <i class="fas fa-globe"></i>
+            </div>
+            <span class="label">Website</span>
+            <span class="value">
+                {% if company and company.website %}
+                    <a href="{{ company.website }}" target="_blank">{{ company.website }}</a>
+                {% else %}
+                    <a href="#" target="_blank">www.interskala.com</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- CONTENT - SCROLLABLE -->
+    <div class="settings-content">
+        <!-- API SETTINGS -->
+        <div class="settings-card">
+            <h4><i class="fas fa-plug"></i> ThingSpeak API Settings</h4>
+            <form method="POST" action="{% url 'dashboard:setting' %}" id="apiForm">
+                {% csrf_token %}
+                <input type="hidden" name="api_form" value="1">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_channel_id"><i class="fas fa-hashtag"></i> Channel ID</label>
+                            {{ api_form.channel_id }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_read_api_key"><i class="fas fa-key"></i> Read API Key</label>
+                            {{ api_form.read_api_key }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_write_api_key"><i class="fas fa-pen"></i> Write API Key</label>
+                            {{ api_form.write_api_key }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><i class="fas fa-info-circle"></i> Status</label>
+                            <div>
+                                {% if api_setting and api_setting.channel_id %}
+                                    <span class="status-badge success">
+                                        <i class="fas fa-check-circle"></i> Configured
+                                    </span>
+                                    {% if api_setting.last_test %}
+                                        <small class="text-muted d-block mt-1">
+                                            Last test: {{ api_setting.last_test|date:"Y-m-d H:i:s" }}
+                                        </small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="status-badge warning">
+                                        <i class="fas fa-exclamation-triangle"></i> Not Configured
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save API Settings
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="testApiConnection()">
+                        <i class="fas fa-vial"></i> Test Connection
+                    </button>
+                </div>
+                
+                <div id="testResult" class="test-result"></div>
+            </form>
+        </div>
+        
+        <!-- COMPANY PROFILE -->
+        <div class="settings-card">
+            <h4><i class="fas fa-building"></i> Company Profile</h4>
+            <form method="POST" action="{% url 'dashboard:setting' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="company_form" value="1">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_name"><i class="fas fa-building"></i> Company Name</label>
+                            {{ company_form.name }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="id_logo"><i class="fas fa-image"></i> Logo</label>
+                            <div class="custom-file-input">
+                                {{ company_form.logo }}
+                                <label class="custom-file-label" for="id_logo">
+                                    <i class="fas fa-upload"></i> Choose file...
+                                </label>
+                            </div>
+                            {% if company and company.logo %}
+                            <div class="company-logo-preview">
+                                <img src="{{ company.logo.url }}" alt="Company Logo" class="company-logo">
+                                <small class="text-muted">Current logo</small>
+                            </div>
+                            {% else %}
+                            <div class="company-logo-preview">
+                                <div class="company-logo-placeholder">
+                                    <i class="fas fa-image fa-2x"></i>
+                                </div>
+                                <small class="text-muted">No logo uploaded</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_address"><i class="fas fa-map-marker-alt"></i> Address</label>
+                    {{ company_form.address }}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="id_phone"><i class="fas fa-phone"></i> Phone</label>
+                            {{ company_form.phone }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="id_email"><i class="fas fa-envelope"></i> Email</label>
+                            {{ company_form.email }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="id_website"><i class="fas fa-globe"></i> Website</label>
+                            {{ company_form.website }}  <!-- ← FIELD WEBSITE SUDAH ADA -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Company Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// ============================================
+// CSRF TOKEN
+// ============================================
+function getCsrfToken() {
+    var cookie = document.cookie.split('; ').find(function(row) { return row.startsWith('csrftoken='); });
+    if (cookie) return cookie.split('=')[1];
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) return meta.getAttribute('content');
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input) return input.value;
+    return '';
+}
+
+// ============================================
+// TEST API CONNECTION
+// ============================================
+function testApiConnection() {
+    var resultDiv = document.getElementById('testResult');
+    resultDiv.className = 'test-result show';
+    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing connection... Please wait.';
+    resultDiv.style.display = 'block';
+    
+    var url = "{% url 'dashboard:test_api_connection' %}";
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCsrfToken()
+        },
+        credentials: 'same-origin'
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.json().then(function(data) {
+                throw new Error(data.message || 'HTTP error ' + response.status);
+            }).catch(function() {
+                throw new Error('Server error ' + response.status);
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.status === 'success') {
+            resultDiv.className = 'test-result show success';
+            var detailsHtml = '';
+            if (data.data) {
+                var feeds = data.data.feeds || [];
+                detailsHtml = `
+                    <div class="details">
+                        <strong>Channel ID:</strong> ${data.channel_id || data.data.channel_id || 'N/A'}<br>
+                        <strong>Total Feeds:</strong> ${data.total_feeds || feeds.length || 0}<br>
+                        ${feeds.length > 0 ? `<strong>Last Entry:</strong> ${JSON.stringify(feeds[0], null, 2)}` : '<strong>Status:</strong> No data in channel'}
+                    </div>
+                `;
+            }
+            resultDiv.innerHTML = `
+                <i class="fas fa-check-circle"></i> 
+                <strong>Connection Successful!</strong>
+                <p class="mb-1">${data.message || 'API is working properly.'}</p>
+                ${detailsHtml}
+            `;
+            Swal.fire({
+                icon: 'success',
+                title: '✅ Connection Successful!',
+                text: data.message || 'API is working properly.',
+                confirmButtonColor: '#0D47A1',
+                confirmButtonText: 'OK'
+            });
+        } else if (data.status === 'warning') {
+            resultDiv.className = 'test-result show warning';
+            resultDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i> 
+                <strong>Warning!</strong>
+                <p class="mb-1">${data.message || 'Connection successful but channel may be empty.'}</p>
+                ${data.details ? `<div class="details">${data.details}</div>` : ''}
+            `;
+            Swal.fire({
+                icon: 'warning',
+                title: '⚠️ Warning!',
+                text: data.message || 'Connection successful but channel may be empty.',
+                confirmButtonColor: '#F39C12',
+                confirmButtonText: 'OK'
+            });
+        } else {
+            resultDiv.className = 'test-result show error';
+            resultDiv.innerHTML = `
+                <i class="fas fa-times-circle"></i> 
+                <strong>Connection Failed!</strong>
+                <p class="mb-1">${data.message || 'Unknown error occurred.'}</p>
+                ${data.details ? `<div class="details">${data.details}</div>` : ''}
+            `;
+            Swal.fire({
+                icon: 'error',
+                title: '❌ Connection Failed!',
+                text: data.message || 'Unknown error occurred.',
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .catch(function(error) {
+        resultDiv.className = 'test-result show error';
+        resultDiv.innerHTML = `
+            <i class="fas fa-times-circle"></i> 
+            <strong>Error!</strong>
+            <p class="mb-1">${error.message || 'Failed to connect to server.'}</p>
+            <div class="details">Please check your network connection and try again.</div>
+        `;
+        Swal.fire({
+            icon: 'error',
+            title: '❌ Error!',
+            text: error.message || 'Failed to connect to server. Please try again.',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'OK'
+        });
+    });
+}
+
+// ============================================
+// FILE INPUT - TAMPILKAN NAMA FILE
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Settings page loaded');
+    
+    // Auto-hide test result after 30 seconds
+    var resultDiv = document.getElementById('testResult');
+    if (resultDiv) {
+        setTimeout(function() {
+            if (resultDiv.classList.contains('show')) {
+                resultDiv.style.display = 'none';
+            }
+        }, 30000);
+    }
+    
+    // File input label update
+    var fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            var label = this.parentElement.querySelector('.custom-file-label');
+            if (label) {
+                var fileName = this.files[0] ? this.files[0].name : 'Choose file...';
+                label.innerHTML = '<i class="fas fa-upload"></i> ' + fileName;
+            }
+        });
+    }
+    
+    // Handle form submission with loading state
+    var forms = document.querySelectorAll('form');
+    forms.forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            var submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

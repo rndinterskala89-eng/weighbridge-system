@@ -1,0 +1,1059 @@
+<!-- dashboard/templates/dashboard/data_supplier.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --supplier-primary: #3498DB;
+        --supplier-dark: #2980B9;
+        --supplier-light: #D6EAF8;
+    }
+    
+    /* ===== FIX: Agar halaman tidak scroll ke bawah ===== */
+    html, body {
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    .content-wrapper {
+        height: 100%;
+        overflow: hidden;
+        padding: 16px 20px;
+    }
+    
+    .card-shadow {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        border: none;
+        border-radius: 12px;
+        height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .card-shadow .card-header {
+        background: transparent;
+        border-bottom: 2px solid #D6EAF8;
+        padding: 12px 20px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    
+    .card-shadow .card-body {
+        padding: 12px 20px;
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* ===== FIX: Hanya tabel yang bisa scroll ===== */
+    .table-wrapper {
+        flex: 1;
+        overflow: auto;
+        position: relative;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .table-wrapper table {
+        margin-bottom: 0;
+        width: 100%;
+    }
+    
+    /* Sticky header table */
+    .table-wrapper thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #D6EAF8;
+        color: #1A5276;
+        font-weight: 600;
+        font-size: 12px;
+        border-bottom: 2px solid #2980B9;
+        white-space: nowrap;
+    }
+    
+    .table-wrapper table th,
+    .table-wrapper table td {
+        padding: 8px 12px;
+        vertical-align: middle;
+        font-size: 13px;
+    }
+    
+    /* Batasi tinggi baris */
+    .table-wrapper table td {
+        max-height: 40px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    /* Hover effect */
+    .table-wrapper tbody tr:hover {
+        background-color: rgba(52, 152, 219, 0.08);
+    }
+    
+    /* Badge */
+    .badge-supplier {
+        background: #3498DB;
+        color: white;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 11px;
+    }
+    
+    /* Buttons */
+    .btn-action {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        margin: 0 2px;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-action:hover {
+        transform: scale(1.05);
+    }
+    .btn-edit {
+        background: #3498DB;
+        color: white;
+    }
+    .btn-edit:hover {
+        background: #2980B9;
+        color: white;
+    }
+    .btn-delete {
+        background: #E74C3C;
+        color: white;
+    }
+    .btn-delete:hover {
+        background: #C0392B;
+    }
+    .btn-supplier {
+        background: #3498DB;
+        color: white;
+        border: none;
+        padding: 8px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .btn-supplier:hover {
+        background: #2980B9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(52, 152, 219, 0.3);
+        color: white;
+    }
+    .btn-supplier:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    /* Custom scrollbar */
+    .table-wrapper::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #3498DB;
+        border-radius: 4px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #2980B9;
+    }
+    
+    /* Modal styles */
+    .modal-content {
+        border-radius: 16px;
+        border: 3px solid #3498DB;
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #3498DB, #2980B9);
+        color: white;
+        border-radius: 13px 13px 0 0;
+    }
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+    .modal-body label {
+        font-weight: 600;
+        color: #1A5276;
+    }
+    .modal-body input, .modal-body select, .modal-body textarea {
+        border: 2px solid #D6EAF8;
+        border-radius: 8px;
+        padding: 8px 12px;
+        width: 100%;
+        transition: all 0.3s;
+    }
+    .modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus {
+        border-color: #3498DB;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+    .btn-secondary-custom {
+        background: #E8ECF1;
+        color: #2C3E50;
+        border: none;
+        padding: 8px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-secondary-custom:hover {
+        background: #D5D8DC;
+    }
+    
+    /* Password Modal */
+    .password-modal .modal-content {
+        border-color: #E74C3C;
+    }
+    .password-modal .modal-header {
+        background: #E74C3C;
+    }
+    .password-modal .modal-body .lock-icon {
+        font-size: 48px;
+        color: #E74C3C;
+        margin-bottom: 10px;
+    }
+    
+    /* Pagination container - tetap terlihat di bawah */
+    .pagination-container {
+        flex-shrink: 0;
+        padding-top: 10px;
+        border-top: 1px solid #e9ecef;
+        margin-top: 8px;
+    }
+    .pagination-container .pagination {
+        margin: 0;
+    }
+    .pagination-container .page-link {
+        color: #3498DB;
+        border-color: #dee2e6;
+    }
+    .pagination-container .page-item.active .page-link {
+        background: #3498DB;
+        border-color: #3498DB;
+        color: white;
+    }
+    
+    /* Loading */
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: 99999;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(4px);
+    }
+    .loading-overlay.active { display: flex !important; }
+    .loading-content {
+        background: white;
+        padding: 30px 40px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        min-width: 250px;
+    }
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498DB;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .card-shadow {
+            height: calc(100vh - 70px);
+        }
+        .card-shadow .card-header h5 {
+            font-size: 14px;
+        }
+        .table-wrapper table th,
+        .table-wrapper table td {
+            font-size: 11px;
+            padding: 6px 8px;
+        }
+        .btn-supplier {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+        .content-wrapper {
+            padding: 8px 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="row h-100">
+        <div class="col-12 h-100">
+            <div class="card card-shadow">
+                <!-- HEADER - Tetap terlihat -->
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <h5><i class="fas fa-truck" style="color:#3498DB;"></i> Data Supplier</h5>
+                    <button class="btn btn-supplier" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                        <i class="fas fa-plus"></i> Tambah Supplier
+                    </button>
+                </div>
+                
+                <!-- BODY - Tabel bisa scroll, header dan pagination tetap -->
+                <div class="card-body">
+                    <!-- Filter Row -->
+                    <div class="row g-2 mb-2 flex-shrink-0">
+                        <div class="col-md-4 col-sm-6">
+                            <input type="text" class="form-control form-control-sm" placeholder="Cari nama supplier..." id="searchSupplier">
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <input type="text" class="form-control form-control-sm" placeholder="Cari ID..." id="searchId">
+                        </div>
+                        <div class="col-md-5 text-end">
+                            <button class="btn btn-sm btn-outline-primary" onclick="exportSuppliers()"><i class="fas fa-file-export"></i> Export</button>
+                            <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#importSupplierModal"><i class="fas fa-file-import"></i> Import</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="filterTable()"><i class="fas fa-filter"></i> Filter</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="resetFilters()"><i class="fas fa-undo"></i> Reset</button>
+                        </div>
+                    </div>
+                    
+                    <!-- TABLE WRAPPER - Hanya ini yang scroll -->
+                    <div class="table-wrapper">
+                        <table class="table table-hover table-striped" id="supplierTable">
+                            <thead>
+                                <tr>
+                                    <th>ID Supplier</th>
+                                    <th>Nama</th>
+                                    <th>Alamat</th>
+                                    <th>Telepon</th>
+                                    <th>Email</th>
+                                    <th>Created</th>
+                                    <th style="min-width:90px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in page_obj %}
+                                <tr>
+                                    <td><strong>{{ item.id_supplier }}</strong></td>
+                                    <td>{{ item.nama_supplier }}</td>
+                                    <td title="{{ item.alamat }}">{{ item.alamat|truncatechars:25 }}</td>
+                                    <td>{{ item.telepon }}</td>
+                                    <td>{{ item.email|default:"-" }}</td>
+                                    <td>{{ item.created_at|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <button class="btn btn-action btn-edit" onclick="editSupplier('{{ item.id_supplier }}')" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-action btn-delete" onclick="deleteSupplier('{{ item.id_supplier }}')" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="fas fa-truck fa-2x text-muted d-block"></i>
+                                        <span class="text-muted">No supplier data available</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- PAGINATION - Tetap terlihat -->
+                    {% if page_obj.has_other_pages %}
+                    <div class="pagination-container">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                {% endif %}
+                                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                                {% if page_obj.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-truck"></i> Tambah Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-supplier">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Supplier Modal -->
+<div class="modal fade" id="editSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Edit Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editSupplierForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="editSupplierId" name="id_supplier">
+                    <div class="mb-3">
+                        <label class="form-label">ID Supplier</label>
+                        <input type="text" id="editSupplierIdDisplay" class="form-control" readonly style="background:#f5f5f5;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSupplierNama" class="form-label">Nama Supplier <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editSupplierNama" name="nama_supplier" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSupplierAlamat" class="form-label">Alamat</label>
+                        <textarea class="form-control" id="editSupplierAlamat" name="alamat" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSupplierTelepon" class="form-label">Telepon</label>
+                        <input type="text" class="form-control" id="editSupplierTelepon" name="telepon">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSupplierEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editSupplierEmail" name="email">
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-lock"></i> <strong>FDA 21 CFR Part 11</strong><br>
+                        <small>Masukkan password untuk verifikasi sebelum menyimpan perubahan.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSupplierPassword" class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="editSupplierPassword" placeholder="Masukkan password Anda..." required>
+                    </div>
+                    <div id="editSupplierError" class="text-danger small mt-2 d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-supplier" id="btnEditSupplier">
+                        <i class="fas fa-save"></i> Update Supplier
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Supplier Modal -->
+<div class="modal fade" id="importSupplierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-file-import"></i> Import Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="importSupplierForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Format Excel:</strong> ID Supplier, Nama Supplier, Alamat, Telepon, Email<br>
+                        <small class="text-muted">* Jika ID Supplier sudah ada, data akan di-update (bukan ditambah baru)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">Pilih File Excel</label>
+                        <input type="file" class="form-control" id="importFile" name="file" accept=".xlsx,.xls" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="importPassword" class="form-label"><i class="fas fa-lock"></i> Password (FDA Compliance)</label>
+                        <input type="password" class="form-control" id="importPassword" placeholder="Masukkan password Anda" required>
+                        <small class="text-muted">Password diperlukan untuk verifikasi FDA 21 CFR Part 11</small>
+                    </div>
+                    <div id="importError" class="text-danger small mt-2 d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-supplier" id="btnImport">
+                        <i class="fas fa-upload"></i> Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     PASSWORD MODAL - UNTUK DELETE
+     ============================================ -->
+<div class="modal fade password-modal" id="passwordModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title"><i class="fas fa-lock"></i> FDA Part 11 - Password Required</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
+                <p class="text-muted">Enter your password to verify your identity.</p>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="passwordInput" placeholder="Enter your password...">
+                </div>
+                <div id="passwordError" class="text-danger small d-none">
+                    <i class="fas fa-exclamation-circle"></i> Invalid password. Please try again.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top:none;padding-top:0;padding-bottom:16px;">
+                <button class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" id="btnConfirmPassword"><i class="fas fa-check"></i> Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h4><i class="fas fa-spinner fa-spin"></i> Processing...</h4>
+        <p>Please wait while we process your request</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// ============================================
+// CSRF TOKEN
+// ============================================
+function getCSRFToken() {
+    var cookieValue = null;
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            cookieValue = cookie.substring(10);
+            break;
+        }
+    }
+    if (!cookieValue) {
+        var tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (tokenInput) {
+            cookieValue = tokenInput.value;
+        }
+    }
+    return cookieValue;
+}
+
+// ============================================
+// TOAST NOTIFICATION
+// ============================================
+function showToast(message, type) {
+    type = type || 'info';
+    var colors = { 
+        success: '#2ECC71', 
+        danger: '#E74C3C', 
+        warning: '#F39C12', 
+        info: '#3498DB' 
+    };
+    
+    var existing = document.querySelector('.custom-toast');
+    if (existing) existing.remove();
+    
+    var toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:' + (colors[type] || '#3498DB') + ';color:white;padding:12px 28px;border-radius:12px;font-weight:500;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.2);opacity:0;transition:all 0.4s ease;max-width:90%;text-align:center;';
+    
+    var iconClass = type === 'success' ? 'fa-check-circle' : 
+                    type === 'danger' ? 'fa-exclamation-circle' : 
+                    type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    toast.innerHTML = '<i class="fas ' + iconClass + ' me-2"></i>' + message;
+    document.body.appendChild(toast);
+    
+    setTimeout(function() { toast.style.opacity = '1'; }, 100);
+    setTimeout(function() { 
+        toast.style.opacity = '0'; 
+        setTimeout(function() { toast.remove(); }, 400); 
+    }, 3500);
+}
+
+// ============================================
+// LOADING FUNCTIONS
+// ============================================
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// ============================================
+// EXPORT SUPPLIERS - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+function exportSuppliers() {
+    var password = prompt('🔒 FDA Part 11 Compliance\n\nMasukkan password untuk export data supplier:');
+    if (password === null) return;
+    if (!password) {
+        showToast('Password diperlukan untuk export data!', 'warning');
+        return;
+    }
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:export_supplier_excel' %}";
+    window.location.href = url + '?password=' + encodeURIComponent(password);
+    showToast('Exporting suppliers to Excel...', 'info');
+}
+
+// ============================================
+// DELETE SUPPLIER - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+var deleteId = null;
+
+function deleteSupplier(id) {
+    Swal.fire({
+        title: '⚠️ Hapus Supplier',
+        text: 'Yakin ingin menghapus supplier ini? Tindakan ini akan dicatat di audit trail.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E74C3C',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            deleteId = id;
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordError').classList.add('d-none');
+            var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+            modal.show();
+        }
+    });
+}
+
+document.getElementById('btnConfirmPassword').addEventListener('click', function() {
+    var password = document.getElementById('passwordInput').value;
+    if (!password) {
+        document.getElementById('passwordError').classList.remove('d-none');
+        document.getElementById('passwordError').textContent = 'Password is required.';
+        return;
+    }
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:delete_supplier' %}";
+    
+    document.getElementById('btnConfirmPassword').disabled = true;
+    document.getElementById('btnConfirmPassword').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    showLoading();
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+            id: deleteId, 
+            password: password 
+        })
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            document.getElementById('passwordError').classList.remove('d-none');
+            document.getElementById('passwordError').textContent = data.message;
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'danger');
+        document.getElementById('passwordError').classList.remove('d-none');
+        document.getElementById('passwordError').textContent = error.message;
+    })
+    .finally(function() {
+        document.getElementById('btnConfirmPassword').disabled = false;
+        document.getElementById('btnConfirmPassword').innerHTML = '<i class="fas fa-check"></i> Confirm';
+    });
+});
+
+document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('btnConfirmPassword').click();
+    }
+});
+
+// ============================================
+// EDIT SUPPLIER - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+function editSupplier(id) {
+    // Tampilkan SweetAlert untuk password
+    Swal.fire({
+        title: '🔒 Verifikasi Password',
+        text: 'Masukkan password Anda untuk mengedit data supplier',
+        icon: 'question',
+        input: 'password',
+        inputPlaceholder: 'Masukkan password Anda',
+        inputAttributes: {
+            autocomplete: 'current-password'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Verifikasi',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#3498DB',
+        cancelButtonColor: '#6c757d',
+        preConfirm: function(password) {
+            if (!password) {
+                Swal.showValidationMessage('Password required!');
+                return false;
+            }
+            return password;
+        }
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            var password = result.value;
+            fetchEditSupplier(id, password);
+        }
+    });
+}
+
+function fetchEditSupplier(id, password) {
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    showLoading();
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:get_supplier' 0 %}".replace('0', id) + '?password=' + encodeURIComponent(password);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'include'
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            document.getElementById('editSupplierId').value = data.data.id_supplier;
+            document.getElementById('editSupplierIdDisplay').value = data.data.id_supplier;
+            document.getElementById('editSupplierNama').value = data.data.nama_supplier;
+            document.getElementById('editSupplierAlamat').value = data.data.alamat || '';
+            document.getElementById('editSupplierTelepon').value = data.data.telepon || '';
+            document.getElementById('editSupplierEmail').value = data.data.email || '';
+            document.getElementById('editSupplierPassword').value = password;
+            document.getElementById('editSupplierError').classList.add('d-none');
+            
+            var editModal = new bootstrap.Modal(document.getElementById('editSupplierModal'));
+            editModal.show();
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            if (data.message.toLowerCase().includes('password')) {
+                editSupplier(id);
+            }
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'danger');
+    });
+}
+
+// ============================================
+// EDIT SUPPLIER FORM SUBMIT - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+document.getElementById('editSupplierForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var id_supplier = document.getElementById('editSupplierId').value;
+    var nama_supplier = document.getElementById('editSupplierNama').value.trim();
+    var alamat = document.getElementById('editSupplierAlamat').value.trim();
+    var telepon = document.getElementById('editSupplierTelepon').value.trim();
+    var email = document.getElementById('editSupplierEmail').value.trim();
+    var password = document.getElementById('editSupplierPassword').value.trim();
+    var errorDiv = document.getElementById('editSupplierError');
+    
+    errorDiv.classList.add('d-none');
+    
+    if (!nama_supplier) {
+        errorDiv.textContent = 'Nama Supplier harus diisi.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    if (!password) {
+        errorDiv.textContent = 'Password verifikasi harus diisi (FDA Part 11).';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    document.getElementById('btnEditSupplier').disabled = true;
+    document.getElementById('btnEditSupplier').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    showLoading();
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:update_supplier' %}";
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+            id_supplier: id_supplier,
+            nama_supplier: nama_supplier,
+            alamat: alamat,
+            telepon: telepon,
+            email: email,
+            password: password
+        })
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('editSupplierModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.classList.remove('d-none');
+            showToast('Error: ' + data.message, 'danger');
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('d-none');
+        showToast('Error: ' + error.message, 'danger');
+    })
+    .finally(function() {
+        document.getElementById('btnEditSupplier').disabled = false;
+        document.getElementById('btnEditSupplier').innerHTML = '<i class="fas fa-save"></i> Update Supplier';
+    });
+});
+
+// Clear error on typing
+document.getElementById('editSupplierPassword').addEventListener('input', function() {
+    document.getElementById('editSupplierError').classList.add('d-none');
+});
+
+// ============================================
+// IMPORT SUPPLIER - DIPERBAIKI DENGAN NAMESPACE
+// ============================================
+document.getElementById('importSupplierForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var fileInput = document.getElementById('importFile');
+    var password = document.getElementById('importPassword').value;
+    var errorDiv = document.getElementById('importError');
+    
+    errorDiv.classList.add('d-none');
+    
+    if (!fileInput.files.length) {
+        errorDiv.textContent = 'Please select a file.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    if (!password) {
+        errorDiv.textContent = 'Password required for FDA compliance.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    // Validasi file
+    var file = fileInput.files[0];
+    var validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+    if (!validTypes.includes(file.type) && !file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+        errorDiv.textContent = 'Format file tidak didukung. Gunakan .xlsx atau .xls';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('password', password);
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    document.getElementById('btnImport').disabled = true;
+    document.getElementById('btnImport').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+    showLoading();
+    
+    // ✅ PERBAIKAN: Gunakan URL dengan namespace
+    var url = "{% url 'dashboard:import_supplier_excel' %}";
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: formData
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            var msg = data.message || 'Import data berhasil!';
+            if (data.imported > 0) msg += ' (' + data.imported + ' baru ditambahkan)';
+            if (data.updated > 0) msg += ' (' + data.updated + ' diperbarui)';
+            showToast(msg, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('importSupplierModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1500);
+        } else {
+            errorDiv.textContent = data.message || 'Import gagal.';
+            errorDiv.classList.remove('d-none');
+            showToast('Error: ' + (data.message || 'Import failed'), 'danger');
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('d-none');
+        showToast('Error: ' + error.message, 'danger');
+    })
+    .finally(function() {
+        document.getElementById('btnImport').disabled = false;
+        document.getElementById('btnImport').innerHTML = '<i class="fas fa-upload"></i> Import';
+    });
+});
+
+// ============================================
+// SEARCH FUNCTIONALITY
+// ============================================
+document.getElementById('searchSupplier').addEventListener('keyup', function() {
+    filterTable();
+});
+document.getElementById('searchId').addEventListener('keyup', function() {
+    filterTable();
+});
+
+function filterTable() {
+    var namaFilter = document.getElementById('searchSupplier').value.toLowerCase();
+    var idFilter = document.getElementById('searchId').value.toLowerCase();
+    var rows = document.querySelectorAll('#supplierTable tbody tr');
+    
+    rows.forEach(function(row) {
+        var nama = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+        var id = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
+        var show = true;
+        if (namaFilter && !nama.includes(namaFilter)) show = false;
+        if (idFilter && !id.includes(idFilter)) show = false;
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+function resetFilters() {
+    document.getElementById('searchSupplier').value = '';
+    document.getElementById('searchId').value = '';
+    filterTable();
+}
+
+// ============================================
+// DOM READY
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Data Supplier page loaded');
+    hideLoading();
+});
+</script>
+{% endblock %}

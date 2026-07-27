@@ -1,0 +1,9 @@
+# requirements.txt
+Django>=4.2,<5.0
+psycopg2-binary>=2.9.0
+django-cors-headers>=4.0.0
+django-cleanup>=7.0.0
+django-debug-toolbar>=4.0.0
+python-decouple>=3.8
+Pillow>=10.0.0
+pywin32>=306

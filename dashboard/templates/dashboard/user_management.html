@@ -1,0 +1,1445 @@
+<!-- dashboard/templates/dashboard/user_management.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* ============================================
+       CSS KHUSUS USER MANAGEMENT
+       ============================================ */
+    :root {
+        --orange-primary: #F57C00;
+        --orange-light: #FFB74D;
+        --blue-primary: #1565C0;
+        --blue-dark: #0D47A1;
+        --shadow: 0 2px 8px rgba(0,0,0,0.08);
+        --shadow-hover: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    
+    .card-shadow {
+        box-shadow: var(--shadow);
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .card-shadow:hover {
+        box-shadow: var(--shadow-hover);
+    }
+    
+    .card-shadow .card-header {
+        background: transparent;
+        border-bottom: 2px solid #FFE0B2;
+        padding: 10px 16px;
+        font-weight: 700;
+        color: var(--blue-dark);
+        font-size: 14px;
+    }
+    
+    .card-shadow .card-header h5 {
+        font-weight: 700;
+        color: var(--blue-dark);
+        font-size: 15px;
+        margin: 0;
+    }
+    
+    .card-shadow .card-header h5 i {
+        color: var(--orange-primary);
+        margin-right: 6px;
+    }
+    
+    .card-shadow .card-body {
+        padding: 12px 16px;
+    }
+    
+    /* Nav Tabs */
+    .nav-tabs {
+        border-bottom: 2px solid #FFE0B2;
+    }
+    
+    .nav-tabs .nav-link {
+        font-weight: 600;
+        color: #5D4037;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 6px 6px 0 0;
+        font-size: 13px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background: #FFF3E0;
+        color: var(--orange-primary);
+    }
+    
+    .nav-tabs .nav-link.active {
+        background: #FFF3E0;
+        color: var(--orange-primary);
+        border-bottom: 3px solid var(--orange-primary);
+    }
+    
+    .nav-tabs .nav-link i {
+        margin-right: 4px;
+    }
+    
+    .nav-tabs .nav-link .badge {
+        font-size: 8px;
+        padding: 2px 6px;
+        margin-left: 3px;
+    }
+    
+    /* Table */
+    .table {
+        margin-bottom: 0;
+        font-size: 12px;
+    }
+    
+    .table th {
+        background: #FFF3E0;
+        color: var(--blue-dark);
+        font-weight: 600;
+        font-size: 11px;
+        border-bottom: 2px solid var(--orange-primary);
+        padding: 6px 8px;
+        white-space: nowrap;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    
+    .table-responsive {
+        max-height: 380px;
+        overflow-y: auto;
+    }
+    
+    /* Badges */
+    .badge-role {
+        padding: 2px 10px;
+        border-radius: 16px;
+        font-weight: 600;
+        font-size: 9px;
+        white-space: nowrap;
+    }
+    
+    .badge-role.superadmin {
+        background: #FF6F00;
+        color: white;
+    }
+    
+    .badge-role.staff {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+    
+    .badge-role.user {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+    
+    .badge-status {
+        padding: 2px 10px;
+        border-radius: 16px;
+        font-size: 9px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .badge-status.active {
+        background: #D5F5E3;
+        color: #27AE60;
+    }
+    
+    .badge-status.inactive {
+        background: #FADBD8;
+        color: #E74C3C;
+    }
+    
+    /* Buttons */
+    .btn-orange {
+        background: linear-gradient(135deg, #F57C00, #E65100);
+        color: white;
+        border: none;
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    
+    .btn-orange:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245,124,0,0.3);
+        color: white;
+    }
+    
+    .btn-orange:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .btn-blue {
+        background: linear-gradient(135deg, #1565C0, #0D47A1);
+        color: white;
+        border: none;
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    
+    .btn-blue:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(21,101,192,0.3);
+        color: white;
+    }
+    
+    .btn-blue:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .btn-danger-custom {
+        background: linear-gradient(135deg, #E74C3C, #C0392B);
+        color: white;
+        border: none;
+        padding: 5px 14px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    
+    .btn-danger-custom:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(231,76,60,0.3);
+        color: white;
+    }
+    
+    .btn-danger-custom:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .btn-action {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        margin: 0 1px;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-action:hover {
+        transform: scale(1.05);
+    }
+    
+    .btn-action:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .btn-edit {
+        background: #FFB74D;
+        color: #4A3728;
+    }
+    
+    .btn-edit:hover {
+        background: #F57C00;
+        color: white;
+    }
+    
+    .btn-delete {
+        background: #E74C3C;
+        color: white;
+    }
+    
+    .btn-delete:hover {
+        background: #C0392B;
+    }
+    
+    .btn-delete-audit {
+        background: #E74C3C;
+        color: white;
+        padding: 1px 6px;
+        border-radius: 3px;
+        border: none;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-delete-audit:hover {
+        background: #C0392B;
+        transform: scale(1.05);
+    }
+    
+    .btn-delete-audit:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .btn-secondary-custom {
+        background: #E8ECF1;
+        color: #2C3E50;
+        border: none;
+        padding: 5px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 12px;
+        transition: all 0.3s;
+    }
+    
+    .btn-secondary-custom:hover {
+        background: #D5D8DC;
+    }
+    
+    /* FDA Badge */
+    .fda-compliance-badge {
+        background: #1B5E20;
+        color: #A5D6A7;
+        padding: 2px 10px;
+        border-radius: 16px;
+        font-size: 9px;
+        font-weight: 600;
+        border: 1px solid #4CAF50;
+        white-space: nowrap;
+    }
+    
+    /* Modal */
+    .modal-content {
+        border-radius: 12px;
+        border: 2px solid var(--orange-primary);
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #F57C00, #E65100);
+        color: white;
+        border-radius: 10px 10px 0 0;
+        padding: 10px 16px;
+    }
+    
+    .modal-header .modal-title {
+        font-size: 15px;
+        font-weight: 600;
+    }
+    
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+        font-size: 12px;
+    }
+    
+    .modal-body {
+        padding: 14px 18px;
+    }
+    
+    .modal-body label {
+        font-weight: 600;
+        color: #4A3728;
+        font-size: 12px;
+    }
+    
+    .modal-body input, .modal-body select {
+        border: 2px solid #FFE0B2;
+        border-radius: 6px;
+        padding: 5px 10px;
+        width: 100%;
+        transition: all 0.3s;
+        font-size: 12px;
+    }
+    
+    .modal-body input:focus, .modal-body select:focus {
+        border-color: var(--orange-primary);
+        box-shadow: 0 0 0 3px rgba(245,124,0,0.1);
+        outline: none;
+    }
+    
+    .modal-body .form-check-input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--orange-primary);
+        cursor: pointer;
+    }
+    
+    .modal-body .form-check-label {
+        font-weight: 500;
+        color: #4A3728;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    
+    .modal-footer {
+        padding: 10px 16px;
+    }
+    
+    /* Password Modal */
+    .password-modal .modal-content {
+        border-color: #E74C3C;
+    }
+    
+    .password-modal .modal-header {
+        background: #E74C3C;
+        padding: 10px 16px;
+    }
+    
+    .password-modal .modal-header .modal-title {
+        font-size: 14px;
+    }
+    
+    .password-modal .modal-body .lock-icon {
+        font-size: 36px;
+        color: #E74C3C;
+        margin-bottom: 6px;
+    }
+    
+    .password-modal .modal-body p {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+    
+    /* Audit Info */
+    .audit-info {
+        background: #E3F2FD;
+        border-left: 3px solid #1565C0;
+        border-radius: 6px;
+        padding: 8px 14px;
+        margin-bottom: 10px;
+        font-size: 12px;
+    }
+    
+    .audit-actions {
+        display: flex;
+        gap: 3px;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+    
+    /* Alert */
+    .alert {
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 11px;
+        margin-bottom: 0;
+    }
+    
+    .alert ul {
+        padding-left: 16px;
+        font-size: 11px;
+        margin-bottom: 0;
+    }
+    
+    .alert ul li {
+        margin-bottom: 1px;
+    }
+    
+    .tab-content {
+        margin-top: 8px !important;
+    }
+    
+    .row.g-2 {
+        --bs-gutter-y: 0.3rem;
+        --bs-gutter-x: 0.3rem;
+    }
+    
+    .mt-2 {
+        margin-top: 0.3rem !important;
+    }
+    
+    .mt-3 {
+        margin-top: 0.5rem !important;
+    }
+    
+    .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .py-4 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .card-shadow .card-body {
+            padding: 10px 12px;
+        }
+        
+        .table th, .table td {
+            font-size: 10px;
+            padding: 4px 6px;
+        }
+        
+        .btn-orange, .btn-blue, .btn-danger-custom {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+        
+        .modal-body {
+            padding: 10px 14px;
+        }
+        
+        .modal-body input, .modal-body select {
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+        
+        .nav-tabs .nav-link {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+        
+        .card-shadow .card-header {
+            padding: 8px 12px;
+        }
+        
+        .card-shadow .card-header h5 {
+            font-size: 13px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .table-responsive {
+            max-height: 280px;
+        }
+        
+        .table th, .table td {
+            font-size: 9px;
+            padding: 3px 4px;
+        }
+        
+        .btn-action {
+            padding: 1px 5px;
+            font-size: 9px;
+        }
+        
+        .badge-role, .badge-status {
+            font-size: 8px;
+            padding: 1px 6px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ============================================
+     USER MANAGEMENT CONTENT - DENGAN SIDEBAR
+     ============================================ -->
+<div class="row">
+    <div class="col-12">
+        <div class="card card-shadow">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <h5>
+                    <i class="fas fa-user-shield"></i> 
+                    User Management 
+                    <span class="fda-compliance-badge ms-2">
+                        <i class="fas fa-certificate"></i> FDA 21 CFR Part 11
+                    </span>
+                </h5>
+                <div>
+                    {% if request.user.is_superuser %}
+                    <button class="btn btn-orange" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-user-plus"></i> Add User
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Nav Tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#usersTab">
+                            <i class="fas fa-users"></i> Users
+                            <span class="badge" style="background:#F57C00;color:white;font-size:8px;padding:2px 6px;margin-left:3px;">{{ users|length }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#auditTab">
+                            <i class="fas fa-history"></i> Audit Trail
+                            <span class="badge" style="background:#1565C0;color:white;font-size:8px;padding:2px 6px;margin-left:3px;">{{ activities|length }}</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Users Tab -->
+                    <div class="tab-pane active" id="usersTab">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Last Login</th>
+                                        <th>Date Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for u in users %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ u.username }}</strong>
+                                            {% if u == request.user %}
+                                            <span class="badge" style="background:#FFD54F;color:#4A3728;font-size:7px;padding:1px 6px;margin-left:3px;">
+                                                <i class="fas fa-user-check"></i> You
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ u.email|default:"-" }}</td>
+                                        <td>
+                                            {% if u.is_superuser %}
+                                            <span class="badge-role superadmin"><i class="fas fa-crown"></i> Super Admin</span>
+                                            {% elif u.is_staff %}
+                                            <span class="badge-role staff"><i class="fas fa-user-tie"></i> Staff</span>
+                                            {% else %}
+                                            <span class="badge-role user"><i class="fas fa-user"></i> User</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge-status {% if u.is_active %}active{% else %}inactive{% endif %}">
+                                                <i class="fas fa-circle" style="font-size:5px;"></i>
+                                                {% if u.is_active %}Active{% else %}Inactive{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>{{ u.last_login|date:"Y-m-d H:i"|default:"Never" }}</td>
+                                        <td>{{ u.date_joined|date:"Y-m-d" }}</td>
+                                        <td>
+                                            {% if request.user.is_superuser %}
+                                                <button class="btn btn-action btn-edit" onclick="editUser('{{ u.username }}')" title="Edit User">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                {% if u.username != 'admin' and u.username != 'superadmin' and u != request.user %}
+                                                <button class="btn btn-action btn-delete" onclick="deleteUser('{{ u.username }}')" title="Delete User">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                {% endif %}
+                                            {% elif request.user.is_staff %}
+                                                <button class="btn btn-action btn-edit" onclick="editUser('{{ u.username }}')" title="Edit User">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-action btn-delete" disabled title="Delete User (Staff tidak memiliki izin)">
+                                                    <i class="fas fa-trash" style="opacity:0.4;"></i>
+                                                </button>
+                                            {% else %}
+                                                <span class="text-muted" style="font-size:10px;">
+                                                    <i class="fas fa-lock"></i> Read Only
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-3">
+                                            <i class="fas fa-users text-muted d-block" style="font-size:20px;"></i>
+                                            <span class="text-muted" style="font-size:12px;">No users found</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="row g-2 mt-2">
+                            <div class="col-md-6">
+                                {% if request.user.is_superuser %}
+                                <button class="btn btn-blue" onclick="exportUsers()">
+                                    <i class="fas fa-file-excel"></i> Export Users
+                                </button>
+                                {% else %}
+                                <button class="btn btn-blue" disabled style="opacity:0.5;cursor:not-allowed;">
+                                    <i class="fas fa-file-excel"></i> Export - No Permission
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                {% if request.user.is_superuser %}
+                                <button class="btn btn-danger-custom" onclick="deleteAllUsers()">
+                                    <i class="fas fa-trash-alt"></i> Delete All Users
+                                </button>
+                                {% else %}
+                                <button class="btn btn-danger-custom" disabled style="opacity:0.5;cursor:not-allowed;">
+                                    <i class="fas fa-trash-alt"></i> Delete All - No Permission
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <div class="alert alert-warning" style="border-left:3px solid #F57C00;background:#FFF8F0;border-radius:6px;padding:6px 12px;font-size:11px;">
+                                    <i class="fas fa-shield-alt" style="color:#F57C00;"></i>
+                                    <strong>FDA 21 CFR Part 11:</strong>
+                                    <ul class="mb-0 mt-1" style="padding-left:16px;font-size:11px;">
+                                        <li>🔒 <strong>Super Admin</strong> - Full access (Create, Read, Update, Delete)</li>
+                                        <li>🔑 <strong>Staff</strong> - Limited access (Create, Read, Update only - No Delete)</li>
+                                        <li>👀 <strong>User</strong> - Read only access</li>
+                                        <li>📝 All actions logged in Audit Trail</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trail Tab -->
+                    <div class="tab-pane" id="auditTab">
+                        <div class="audit-info">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>FDA 21 CFR Part 11 Compliant</strong> - All user activities are logged for audit purposes.
+                        </div>
+                        
+                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto; border: 1px solid #FFE0B2; border-radius: 6px;">
+                            <table class="table table-hover table-striped" style="margin-bottom: 0;">
+                                <thead style="position: sticky; top: 0; z-index: 100;">
+                                    <tr>
+                                        <th style="background:#FFF3E0;color:#1565C0;font-weight:700;font-size:10px;border-bottom:2px solid #F57C00;padding:6px 10px;white-space:nowrap;position:sticky;top:0;z-index:101;">
+                                            <i class="fas fa-clock"></i> Timestamp
+                                        </th>
+                                        <th style="background:#FFF3E0;color:#1565C0;font-weight:700;font-size:10px;border-bottom:2px solid #F57C00;padding:6px 10px;white-space:nowrap;position:sticky;top:0;z-index:101;">
+                                            <i class="fas fa-user"></i> User
+                                        </th>
+                                        <th style="background:#FFF3E0;color:#1565C0;font-weight:700;font-size:10px;border-bottom:2px solid #F57C00;padding:6px 10px;white-space:nowrap;position:sticky;top:0;z-index:101;">
+                                            <i class="fas fa-tag"></i> Action
+                                        </th>
+                                        <th style="background:#FFF3E0;color:#1565C0;font-weight:700;font-size:10px;border-bottom:2px solid #F57C00;padding:6px 10px;min-width:120px;position:sticky;top:0;z-index:101;">
+                                            <i class="fas fa-info-circle"></i> Details
+                                        </th>
+                                        <th style="background:#FFF3E0;color:#1565C0;font-weight:700;font-size:10px;border-bottom:2px solid #F57C00;padding:6px 10px;white-space:nowrap;position:sticky;top:0;z-index:101;">
+                                            <i class="fas fa-network-wired"></i> IP
+                                        </th>
+                                        <th style="background:#FFF3E0;color:#1565C0;font-weight:700;font-size:10px;border-bottom:2px solid #F57C00;padding:6px 10px;white-space:nowrap;text-align:center;position:sticky;top:0;z-index:101;">
+                                            <i class="fas fa-cog"></i> Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for activity in activities %}
+                                    <tr>
+                                        <td style="padding:4px 10px;font-size:11px;vertical-align:middle;border-bottom:1px solid #FFE0B2;white-space:nowrap;">
+                                            {{ activity.timestamp|date:"Y-m-d H:i:s" }}
+                                        </td>
+                                        <td style="padding:4px 10px;font-size:11px;vertical-align:middle;border-bottom:1px solid #FFE0B2;">
+                                            <strong>{{ activity.user.username }}</strong>
+                                        </td>
+                                        <td style="padding:4px 10px;font-size:11px;vertical-align:middle;border-bottom:1px solid #FFE0B2;">
+                                            <span class="badge" style="background:{% if 'Delete' in activity.action %}#E74C3C{% elif 'Add' in activity.action %}#2ECC71{% elif 'Update' in activity.action %}#F39C12{% else %}#3498DB{% endif %};color:white;font-size:8px;padding:2px 10px;">
+                                                {{ activity.action }}
+                                            </span>
+                                        </td>
+                                        <td style="padding:4px 10px;font-size:11px;vertical-align:middle;border-bottom:1px solid #FFE0B2;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                            {{ activity.details|default:"-" }}
+                                        </td>
+                                        <td style="padding:4px 10px;font-size:11px;vertical-align:middle;border-bottom:1px solid #FFE0B2;">
+                                            <code style="font-size:10px;background:#f5f5f5;padding:1px 6px;border-radius:3px;">{{ activity.ip_address|default:"-" }}</code>
+                                        </td>
+                                        <td style="padding:4px 10px;text-align:center;vertical-align:middle;border-bottom:1px solid #FFE0B2;">
+                                            <div class="audit-actions" style="display:flex;gap:3px;justify-content:center;align-items:center;">
+                                                {% if request.user.is_superuser %}
+                                                <button class="btn btn-delete-audit" onclick="deleteAuditLog('{{ activity.id }}')" title="Delete this audit log">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                {% else %}
+                                                <button class="btn btn-delete-audit" disabled title="Only Super Admin can delete audit logs">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-3">
+                                            <i class="fas fa-clipboard-list text-muted d-block" style="font-size:20px;"></i>
+                                            <span class="text-muted" style="font-size:12px;">No activities logged</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="row g-2 mt-2">
+                            <div class="col-md-6">
+                                <button class="btn btn-blue" onclick="exportAudit()">
+                                    <i class="fas fa-file-export"></i> Export Audit (CSV)
+                                </button>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                {% if request.user.is_superuser %}
+                                <button class="btn btn-danger-custom" onclick="deleteAllAuditLogs()">
+                                    <i class="fas fa-trash-alt"></i> Delete All Audit
+                                </button>
+                                {% else %}
+                                <button class="btn btn-danger-custom" disabled style="opacity:0.5;cursor:not-allowed;">
+                                    <i class="fas fa-trash-alt"></i> Delete All - No Permission
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <div class="alert alert-info" style="border-left:3px solid #1565C0;background:#E3F2FD;border-radius:6px;padding:6px 12px;font-size:11px;">
+                                    <i class="fas fa-shield-alt" style="color:#1565C0;"></i>
+                                    <strong>Audit Trail - FDA 21 CFR Part 11:</strong>
+                                    <ul class="mb-0 mt-1" style="padding-left:16px;font-size:11px;">
+                                        <li>📋 All user actions are automatically logged</li>
+                                        <li>🔒 Only <strong>Super Admin</strong> can delete audit logs</li>
+                                        <li>📊 Audit logs can be exported to CSV</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     MODALS
+     ============================================ -->
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> Add New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addUserForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label for="addUsername" class="form-label"><i class="fas fa-user"></i> Username</label>
+                        <input type="text" id="addUsername" name="username" class="form-control" required placeholder="Enter username">
+                    </div>
+                    <div class="mb-2">
+                        <label for="addEmail" class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="addEmail" name="email" class="form-control" placeholder="Enter email (optional)">
+                    </div>
+                    <div class="mb-2">
+                        <label for="addPassword" class="form-label"><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="addPassword" name="password" class="form-control" required placeholder="Enter password">
+                    </div>
+                    <div class="mb-2">
+                        <label for="addPassword2" class="form-label"><i class="fas fa-check-circle"></i> Confirm Password</label>
+                        <input type="password" id="addPassword2" name="password2" class="form-control" required placeholder="Confirm password">
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="addSuperuser" name="is_superuser" class="form-check-input">
+                        <label for="addSuperuser" class="form-check-label">
+                            <i class="fas fa-crown" style="color:#F57C00;"></i> Superuser (Full Access)
+                        </label>
+                    </div>
+                    <div class="form-check mt-1">
+                        <input type="checkbox" id="addStaff" name="is_staff" class="form-check-input">
+                        <label for="addStaff" class="form-check-label">
+                            <i class="fas fa-user-tie" style="color:#3498DB;"></i> Staff (Edit Only, No Delete)
+                        </label>
+                    </div>
+                    <div id="addUserError" class="text-danger small mt-2 d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-orange" id="btnAddUser">
+                        <i class="fas fa-save"></i> Create User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editUserForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="editUsername" name="username" value="">
+                    
+                    <div class="mb-2">
+                        <label class="form-label"><i class="fas fa-user"></i> Username</label>
+                        <input type="text" id="editUsernameDisplay" class="form-control" readonly style="background:#f5f5f5;font-size:12px;">
+                    </div>
+                    <div class="mb-2">
+                        <label for="editEmail" class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="editEmail" name="email" class="form-control" placeholder="Enter email">
+                    </div>
+                    <div class="mb-2">
+                        <label for="editPassword" class="form-label"><i class="fas fa-lock"></i> New Password (leave blank to keep current)</label>
+                        <input type="password" id="editPassword" name="password" class="form-control" placeholder="Enter new password">
+                    </div>
+                    {% if request.user.is_superuser %}
+                    <div class="form-check">
+                        <input type="checkbox" id="editSuperuser" name="is_superuser" class="form-check-input">
+                        <label for="editSuperuser" class="form-check-label">
+                            <i class="fas fa-crown" style="color:#F57C00;"></i> Superuser
+                        </label>
+                    </div>
+                    <div class="form-check mt-1">
+                        <input type="checkbox" id="editStaff" name="is_staff" class="form-check-input">
+                        <label for="editStaff" class="form-check-label">
+                            <i class="fas fa-user-tie" style="color:#3498DB;"></i> Staff
+                        </label>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" style="font-size:11px;padding:6px 10px;">
+                        <i class="fas fa-info-circle"></i> Staff cannot change user roles.
+                    </div>
+                    <input type="hidden" id="editSuperuser" name="is_superuser" value="0">
+                    <input type="hidden" id="editStaff" name="is_staff" value="1">
+                    {% endif %}
+                    
+                    <div class="mb-2 mt-2" style="border-top:2px solid #FFE0B2;padding-top:10px;">
+                        <label for="editVerifyPassword" class="form-label" style="font-size:11px;font-weight:600;">
+                            <i class="fas fa-shield-alt" style="color:#F57C00;"></i> 
+                            <strong>FDA 21 CFR Part 11 - Password Verification</strong>
+                        </label>
+                        <input type="password" class="form-control" id="editVerifyPassword" 
+                               name="verify_password" 
+                               placeholder="Masukkan PASSWORD LOGIN Anda untuk verifikasi" 
+                               required 
+                               style="font-size:12px;border-color:#F57C00;">
+                        <small class="text-muted" style="font-size:10px;color:#E74C3C !important;">
+                            <i class="fas fa-exclamation-circle"></i> 
+                            Masukkan <strong>PASSWORD ANDA SENDIRI</strong> (password yang Anda gunakan untuk login)
+                        </small>
+                    </div>
+                    
+                    <div id="editUserError" class="text-danger small mt-2 d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-orange" id="btnEditUser">
+                        <i class="fas fa-save"></i> Update User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Password Modal -->
+<div class="modal fade password-modal" id="passwordModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title"><i class="fas fa-lock"></i> FDA Part 11 - Password Required</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-3">
+                <div class="lock-icon"><i class="fas fa-shield-alt"></i></div>
+                <p class="text-muted" style="font-size:12px;">Enter your password to verify your identity.</p>
+                <div class="mb-2">
+                    <input type="password" class="form-control" id="passwordInput" placeholder="Enter your password..." style="font-size:12px;">
+                </div>
+                <div id="passwordError" class="text-danger small d-none">
+                    <i class="fas fa-exclamation-circle"></i> Invalid password. Please try again.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top:none;padding-top:0;padding-bottom:12px;">
+                <button class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" id="btnConfirmPassword" style="font-size:12px;padding:5px 16px;"><i class="fas fa-check"></i> Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ============================================
+// CSRF TOKEN
+// ============================================
+function getCSRFToken() {
+    var cookieValue = null;
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            cookieValue = cookie.substring(10);
+            break;
+        }
+    }
+    if (!cookieValue) {
+        var tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (tokenInput) {
+            cookieValue = tokenInput.value;
+        }
+    }
+    return cookieValue;
+}
+
+// ============================================
+// TOAST NOTIFICATION
+// ============================================
+function showToast(message, type) {
+    type = type || 'info';
+    var colors = { 
+        success: '#2ECC71', 
+        danger: '#E74C3C', 
+        warning: '#F39C12', 
+        info: '#3498DB' 
+    };
+    
+    var existing = document.querySelector('.custom-toast');
+    if (existing) existing.remove();
+    
+    var toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:' + (colors[type] || '#3498DB') + ';color:white;padding:10px 24px;border-radius:10px;font-weight:500;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,0.2);opacity:0;transition:all 0.4s ease;max-width:90%;text-align:center;';
+    
+    var iconClass = type === 'success' ? 'fa-check-circle' : 
+                    type === 'danger' ? 'fa-exclamation-circle' : 
+                    type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    toast.innerHTML = '<i class="fas ' + iconClass + ' me-2"></i>' + message;
+    document.body.appendChild(toast);
+    
+    setTimeout(function() { toast.style.opacity = '1'; }, 100);
+    setTimeout(function() { 
+        toast.style.opacity = '0'; 
+        setTimeout(function() { toast.remove(); }, 400); 
+    }, 3500);
+}
+
+// ============================================
+// ADD USER
+// ============================================
+document.getElementById('addUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var username = document.getElementById('addUsername').value.trim();
+    var email = document.getElementById('addEmail').value.trim();
+    var password = document.getElementById('addPassword').value;
+    var password2 = document.getElementById('addPassword2').value;
+    var isSuperuser = document.getElementById('addSuperuser').checked;
+    var isStaff = document.getElementById('addStaff').checked;
+    var errorDiv = document.getElementById('addUserError');
+    
+    if (!username) {
+        errorDiv.textContent = 'Username is required.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    if (password.length < 4) {
+        errorDiv.textContent = 'Password must be at least 4 characters.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    if (password !== password2) {
+        errorDiv.textContent = 'Passwords do not match.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    errorDiv.classList.add('d-none');
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    document.getElementById('btnAddUser').disabled = true;
+    document.getElementById('btnAddUser').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+    
+    fetch('/users/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: new URLSearchParams({
+            username: username,
+            email: email,
+            password: password,
+            password2: password2,
+            is_superuser: isSuperuser ? 'on' : '',
+            is_staff: isStaff ? 'on' : ''
+        })
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.classList.remove('d-none');
+            showToast('Error: ' + data.message, 'danger');
+        }
+    })
+    .catch(function(error) {
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('d-none');
+        showToast('Error: ' + error.message, 'danger');
+    })
+    .finally(function() {
+        document.getElementById('btnAddUser').disabled = false;
+        document.getElementById('btnAddUser').innerHTML = '<i class="fas fa-save"></i> Create User';
+    });
+});
+
+// ============================================
+// EDIT USER
+// ============================================
+function editUser(username) {
+    console.log('✏️ EDIT USER:', username);
+    
+    document.getElementById('editUsername').value = username;
+    document.getElementById('editUsernameDisplay').value = username;
+    
+    document.getElementById('editEmail').value = '';
+    document.getElementById('editPassword').value = '';
+    document.getElementById('editVerifyPassword').value = '';
+    document.getElementById('editSuperuser').checked = false;
+    document.getElementById('editStaff').checked = false;
+    document.getElementById('editUserError').classList.add('d-none');
+    
+    fetch('/dashboard/get-user/' + encodeURIComponent(username) + '/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'include'
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.status === 'success') {
+            document.getElementById('editEmail').value = data.data.email || '';
+            document.getElementById('editSuperuser').checked = data.data.is_superuser || false;
+            document.getElementById('editStaff').checked = data.data.is_staff || false;
+            
+            var modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            modal.show();
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+        }
+    })
+    .catch(function(error) {
+        console.error('❌ Error fetching user:', error);
+        showToast('Error: ' + error.message, 'danger');
+    });
+}
+
+// ============================================
+// SUBMIT EDIT USER
+// ============================================
+document.getElementById('editUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var username = document.getElementById('editUsername').value;
+    var email = document.getElementById('editEmail').value.trim();
+    var password = document.getElementById('editPassword').value;
+    var isSuperuser = document.getElementById('editSuperuser').checked;
+    var isStaff = document.getElementById('editStaff').checked;
+    var verifyPassword = document.getElementById('editVerifyPassword').value;
+    var errorDiv = document.getElementById('editUserError');
+    
+    errorDiv.classList.add('d-none');
+    errorDiv.textContent = '';
+    
+    if (!username) {
+        errorDiv.textContent = 'Username is required.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    if (!verifyPassword) {
+        errorDiv.textContent = 'Password verifikasi wajib diisi sesuai FDA 21 CFR Part 11.';
+        errorDiv.classList.remove('d-none');
+        return;
+    }
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    document.getElementById('btnEditUser').disabled = true;
+    document.getElementById('btnEditUser').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    
+    var requestData = {
+        username: username,
+        email: email,
+        password: password,
+        is_superuser: isSuperuser,
+        is_staff: isStaff,
+        verify_password: verifyPassword
+    };
+    
+    fetch('/dashboard/update-user/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify(requestData)
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.classList.remove('d-none');
+            showToast('Error: ' + data.message, 'danger');
+        }
+    })
+    .catch(function(error) {
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('d-none');
+        showToast('Error: ' + error.message, 'danger');
+    })
+    .finally(function() {
+        document.getElementById('btnEditUser').disabled = false;
+        document.getElementById('btnEditUser').innerHTML = '<i class="fas fa-save"></i> Update User';
+    });
+});
+
+// ============================================
+// DELETE USER
+// ============================================
+var deleteTarget = '';
+var deleteAction = 'user';
+
+function deleteUser(username) {
+    var isSuperAdmin = {% if request.user.is_superuser %}true{% else %}false{% endif %};
+    if (!isSuperAdmin) {
+        showToast('Only Super Admin can delete users!', 'danger');
+        return;
+    }
+    
+    if (!confirm('⚠️ Yakin ingin menghapus user "' + username + '"? Tindakan ini akan dicatat di audit trail.')) {
+        return;
+    }
+    
+    deleteTarget = username;
+    deleteAction = 'user';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').classList.add('d-none');
+    var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    modal.show();
+}
+
+// ============================================
+// DELETE ALL USERS
+// ============================================
+function deleteAllUsers() {
+    var isSuperAdmin = {% if request.user.is_superuser %}true{% else %}false{% endif %};
+    if (!isSuperAdmin) {
+        showToast('Only Super Admin can delete all users!', 'danger');
+        return;
+    }
+    
+    if (confirm('⚠️ WARNING: Delete ALL users? This action cannot be undone!')) {
+        deleteTarget = 'all';
+        deleteAction = 'all_users';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordError').classList.add('d-none');
+        var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+        modal.show();
+    }
+}
+
+// ============================================
+// DELETE AUDIT LOG
+// ============================================
+var deleteAuditId = null;
+
+function deleteAuditLog(id) {
+    var isSuperAdmin = {% if request.user.is_superuser %}true{% else %}false{% endif %};
+    if (!isSuperAdmin) {
+        showToast('Only Super Admin can delete audit logs!', 'danger');
+        return;
+    }
+    
+    if (confirm('Delete this audit log entry? This action will be recorded in the audit trail.')) {
+        deleteAuditId = id;
+        deleteAction = 'audit_log';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordError').classList.add('d-none');
+        var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+        modal.show();
+    }
+}
+
+// ============================================
+// DELETE ALL AUDIT LOGS
+// ============================================
+function deleteAllAuditLogs() {
+    var isSuperAdmin = {% if request.user.is_superuser %}true{% else %}false{% endif %};
+    if (!isSuperAdmin) {
+        showToast('Only Super Admin can delete all audit logs!', 'danger');
+        return;
+    }
+    
+    if (confirm('⚠️ WARNING: Delete ALL audit logs? This action cannot be undone!')) {
+        if (confirm('Are you ABSOLUTELY sure? This will delete all audit trail records.')) {
+            deleteTarget = 'all';
+            deleteAction = 'all_audit_logs';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordError').classList.add('d-none');
+            var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+            modal.show();
+        }
+    }
+}
+
+// ============================================
+// CONFIRM PASSWORD
+// ============================================
+document.getElementById('btnConfirmPassword').addEventListener('click', function() {
+    var password = document.getElementById('passwordInput').value;
+    if (!password) {
+        document.getElementById('passwordError').classList.remove('d-none');
+        document.getElementById('passwordError').textContent = 'Password is required.';
+        return;
+    }
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    var url = '';
+    var body = {};
+    
+    if (deleteAction === 'user') {
+        url = '/users/delete/';
+        body = { username: deleteTarget, password: password };
+    } else if (deleteAction === 'all_users') {
+        url = '/users/delete-all/';
+        body = { password: password, confirm: 'DELETE_ALL' };
+    } else if (deleteAction === 'audit_log') {
+        url = '/api/audit/delete/';
+        body = { id: deleteAuditId, password: password };
+    } else if (deleteAction === 'all_audit_logs') {
+        url = '/api/audit/delete-all/';
+        body = { password: password, confirm: 'DELETE_ALL_AUDIT' };
+    }
+    
+    document.getElementById('btnConfirmPassword').disabled = true;
+    document.getElementById('btnConfirmPassword').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify(body)
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            document.getElementById('passwordError').classList.remove('d-none');
+            document.getElementById('passwordError').textContent = data.message;
+        }
+    })
+    .catch(function(error) {
+        showToast('Error: ' + error.message, 'danger');
+        document.getElementById('passwordError').classList.remove('d-none');
+        document.getElementById('passwordError').textContent = error.message;
+    })
+    .finally(function() {
+        document.getElementById('btnConfirmPassword').disabled = false;
+        document.getElementById('btnConfirmPassword').innerHTML = '<i class="fas fa-check"></i> Confirm';
+    });
+});
+
+document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('btnConfirmPassword').click();
+    }
+});
+
+// ============================================
+// EXPORT FUNCTIONS
+// ============================================
+function exportUsers() {
+    var isSuperAdmin = {% if request.user.is_superuser %}true{% else %}false{% endif %};
+    if (!isSuperAdmin) {
+        showToast('Only Super Admin can export users!', 'danger');
+        return;
+    }
+    window.location.href = '/users/export-excel/';
+    showToast('Exporting users to Excel...', 'info');
+}
+
+function exportAudit() {
+    window.location.href = '/users/export-audit-csv/';
+    showToast('Exporting audit log to CSV...', 'info');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,1047 @@
+<!-- dashboard/templates/dashboard/data_barang.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+/* ============================================
+   FIXED HEADER - AGAR TIDAK IKUT SCROLL
+   ============================================ */
+
+/* Container utama */
+.data-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 15px;
+    background: #f5f7fa;
+}
+
+/* Card wrapper */
+.card-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+/* Header Card - FIXED/STICKY */
+.card-header-fixed {
+    flex-shrink: 0;
+    background: white;
+    border-bottom: 2px solid #FFE0B2;
+    padding: 12px 20px;
+    font-weight: 600;
+    border-radius: 12px 12px 0 0;
+    z-index: 100;
+    position: sticky;
+    top: 0;
+}
+
+/* Search Section - FIXED/STICKY */
+.search-fixed {
+    flex-shrink: 0;
+    background: white;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e9ecef;
+    z-index: 99;
+    position: sticky;
+    top: 60px;
+}
+
+/* Table Wrapper - SCROLLABLE */
+.table-scroll {
+    flex: 1;
+    overflow: auto;
+    padding: 0 20px 20px 20px;
+}
+
+.table-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+    background: #F57C00;
+    border-radius: 4px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+    background: #E65100;
+}
+
+/* Table */
+.table-scroll table {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.table-scroll thead {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.table-scroll thead th {
+    background: #FFF3E0;
+    color: #1565C0;
+    font-weight: 600;
+    font-size: 12px;
+    border-bottom: 2px solid #F57C00;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* Pagination - FIXED/STICKY di bawah */
+.pagination-fixed {
+    flex-shrink: 0;
+    background: white;
+    padding: 10px 20px;
+    border-top: 1px solid #e9ecef;
+    border-radius: 0 0 12px 12px;
+    z-index: 97;
+    position: sticky;
+    bottom: 0;
+}
+
+/* Badge */
+.badge-lot {
+    background: #FFB74D;
+    color: #4A3728;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+/* Buttons */
+.btn-action {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin: 0 2px;
+    transition: all 0.3s;
+}
+.btn-action:hover {
+    transform: scale(1.05);
+}
+.btn-edit {
+    background: #FFB74D;
+    color: #4A3728;
+    border: none;
+}
+.btn-edit:hover {
+    background: #F57C00;
+    color: white;
+}
+.btn-delete {
+    background: #E74C3C;
+    color: white;
+    border: none;
+}
+.btn-delete:hover {
+    background: #C0392B;
+}
+
+.btn-orange {
+    background: #F57C00;
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.btn-orange:hover {
+    background: #E65100;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(245, 124, 0, 0.3);
+    color: white;
+}
+
+.btn-export {
+    background: #27AE60;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    font-size: 12px;
+}
+.btn-export:hover {
+    background: #1E8449;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-import {
+    background: #8E44AD;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    font-size: 12px;
+}
+.btn-import:hover {
+    background: #6C3483;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-search {
+    background: #F57C00;
+    color: white;
+    border: none;
+    padding: 6px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    height: 38px;
+}
+.btn-search:hover {
+    background: #E65100;
+    color: white;
+}
+
+.btn-reset {
+    background: #E8ECF1;
+    color: #2C3E50;
+    border: none;
+    padding: 6px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    height: 38px;
+}
+.btn-reset:hover {
+    background: #D5D8DC;
+}
+
+.btn-secondary-custom {
+    background: #E8ECF1;
+    color: #2C3E50;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+.btn-secondary-custom:hover {
+    background: #D5D8DC;
+}
+
+.action-buttons-top {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-section {
+    background: #FFF8F0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 0;
+    border: 1px solid #FFE0B2;
+}
+.search-section .form-control {
+    border: 2px solid #FFE0B2;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+}
+.search-section .form-control:focus {
+    border-color: #F57C00;
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+}
+.search-section label {
+    font-weight: 600;
+    color: #4A3728;
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 16px;
+    border: 3px solid #F57C00;
+}
+.modal-header {
+    background: linear-gradient(135deg, #F57C00, #E65100);
+    color: white;
+    border-radius: 13px 13px 0 0;
+}
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+.modal-body label {
+    font-weight: 600;
+    color: #4A3728;
+}
+.modal-body input, .modal-body select, .modal-body textarea {
+    border: 2px solid #FFE0B2;
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 100%;
+    transition: all 0.3s;
+}
+.modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus {
+    border-color: #F57C00;
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+    outline: none;
+}
+
+/* Loading */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+.loading-overlay.active { display: flex !important; }
+.loading-content {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    min-width: 250px;
+}
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #F57C00;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .data-container {
+        padding: 10px;
+        height: 100vh;
+    }
+    .card-header-fixed {
+        padding: 10px 15px;
+    }
+    .card-header-fixed h5 {
+        font-size: 16px;
+    }
+    .search-fixed {
+        padding: 10px 15px;
+        top: 50px;
+    }
+    .table-scroll {
+        padding: 0 10px 10px 10px;
+    }
+    .pagination-fixed {
+        padding: 8px 10px;
+    }
+    .action-buttons-top .btn {
+        font-size: 11px;
+        padding: 4px 12px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="data-container">
+    <div class="card-wrapper">
+        <!-- HEADER - FIXED/STICKY -->
+        <div class="card-header-fixed d-flex justify-content-between align-items-center flex-wrap" style="gap:10px;">
+            <h5><i class="fas fa-box" style="color:#F57C00;"></i> Data Barang</h5>
+            <div class="action-buttons-top">
+                <button class="btn btn-orange" data-bs-toggle="modal" data-bs-target="#addBarangModal">
+                    <i class="fas fa-plus"></i> Tambah
+                </button>
+                <button class="btn btn-export" onclick="exportBarang()">
+                    <i class="fas fa-file-excel"></i> Export
+                </button>
+                <button class="btn btn-import" onclick="document.getElementById('importFile').click()">
+                    <i class="fas fa-file-import"></i> Import
+                </button>
+                <input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importBarang(this)">
+            </div>
+        </div>
+        
+        <!-- SEARCH - FIXED/STICKY -->
+        <div class="search-fixed">
+            <div class="search-section">
+                <form method="GET" action="" id="searchForm">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3 col-sm-6 col-12">
+                            <label for="search_nama"><i class="fas fa-search"></i> Nama Barang</label>
+                            <input type="text" class="form-control" id="search_nama" name="search_nama" placeholder="Cari nama barang..." value="{{ request.GET.search_nama }}">
+                        </div>
+                        <div class="col-md-3 col-sm-6 col-12">
+                            <label for="search_kategori"><i class="fas fa-tag"></i> Kategori</label>
+                            <input type="text" class="form-control" id="search_kategori" name="search_kategori" placeholder="Cari kategori..." value="{{ request.GET.search_kategori }}">
+                        </div>
+                        <div class="col-md-3 col-sm-6 col-12">
+                            <label for="search_id"><i class="fas fa-barcode"></i> ID Barang</label>
+                            <input type="text" class="form-control" id="search_id" name="search_id" placeholder="Cari ID..." value="{{ request.GET.search_id }}">
+                        </div>
+                        <div class="col-md-3 col-sm-6 col-12">
+                            <label>&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-search flex-grow-1"><i class="fas fa-filter"></i> Filter</button>
+                                <button type="button" class="btn btn-reset" onclick="resetSearch()"><i class="fas fa-undo"></i> Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- TABLE - SCROLLABLE -->
+        <div class="table-scroll">
+            <table class="table table-hover table-striped" id="barangTable">
+                <thead>
+                    <tr>
+                        <th>ID Barang</th>
+                        <th>Nama Barang</th>
+                        <th>Lot</th>
+                        <th>Kategori</th>
+                        <th>Deskripsi</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in page_obj %}
+                    <tr>
+                        <td><strong>{{ item.id_barang }}</strong></td>
+                        <td>{{ item.nama_barang }}</td>
+                        <td><span class="badge-lot">{{ item.lot }}</span></td>
+                        <td>{{ item.kategori|default:"-" }}</td>
+                        <td>{{ item.deskripsi|truncatechars:50|default:"-" }}</td>
+                        <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <button class="btn btn-action btn-edit" onclick="editBarang('{{ item.id_barang }}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-action btn-delete" onclick="deleteBarang('{{ item.id_barang }}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-box-open fa-2x text-muted d-block"></i>
+                            <span class="text-muted">No barang data available</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- PAGINATION - FIXED/STICKY di bawah -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination-fixed">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1{% if request.GET.search_nama %}&search_nama={{ request.GET.search_nama }}{% endif %}{% if request.GET.search_kategori %}&search_kategori={{ request.GET.search_kategori }}{% endif %}{% if request.GET.search_id %}&search_id={{ request.GET.search_id }}{% endif %}">&laquo; First</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search_nama %}&search_nama={{ request.GET.search_nama }}{% endif %}{% if request.GET.search_kategori %}&search_kategori={{ request.GET.search_kategori }}{% endif %}{% if request.GET.search_id %}&search_id={{ request.GET.search_id }}{% endif %}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search_nama %}&search_nama={{ request.GET.search_nama }}{% endif %}{% if request.GET.search_kategori %}&search_kategori={{ request.GET.search_kategori }}{% endif %}{% if request.GET.search_id %}&search_id={{ request.GET.search_id }}{% endif %}">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search_nama %}&search_nama={{ request.GET.search_nama }}{% endif %}{% if request.GET.search_kategori %}&search_kategori={{ request.GET.search_kategori }}{% endif %}{% if request.GET.search_id %}&search_id={{ request.GET.search_id }}{% endif %}">Last &raquo;</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Barang Modal -->
+<div class="modal fade" id="addBarangModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Tambah Barang</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-orange">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Barang Modal -->
+<div class="modal fade" id="editBarangModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Edit Barang</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editBarangForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="edit_id" id="edit_id">
+                    <div class="mb-3">
+                        <label for="edit_id_barang" class="form-label">ID Barang</label>
+                        <input type="text" class="form-control" id="edit_id_barang" name="id_barang" readonly style="background:#f5f5f5;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_nama_barang" class="form-label">Nama Barang <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_nama_barang" name="nama_barang" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_lot" class="form-label">Lot <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_lot" name="lot" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_kategori" class="form-label">Kategori</label>
+                        <input type="text" class="form-control" id="edit_kategori" name="kategori">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_deskripsi" class="form-label">Deskripsi</label>
+                        <textarea class="form-control" id="edit_deskripsi" name="deskripsi" rows="3"></textarea>
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-lock"></i> <strong>FDA 21 CFR Part 11</strong><br>
+                        <small>Masukkan password untuk verifikasi sebelum menyimpan perubahan.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password" class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="edit_password" name="edit_password" placeholder="Masukkan password Anda..." required>
+                    </div>
+                    <div id="editPasswordError" class="text-danger small d-none">
+                        <i class="fas fa-exclamation-circle"></i> Invalid password. Please try again.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-orange" id="btnEditSubmit">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Password Modal for Delete -->
+<div class="modal fade" id="passwordModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:3px solid #E74C3C;">
+            <div class="modal-header" style="background:#E74C3C;color:white;border-radius:13px 13px 0 0;">
+                <h6 class="modal-title"><i class="fas fa-lock"></i> FDA Part 11 - Password Required</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:brightness(0) invert(1);"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-shield-alt fa-3x" style="color:#E74C3C;margin-bottom:10px;"></i>
+                <p class="text-muted">Enter your password to verify your identity.</p>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="passwordInput" placeholder="Enter your password..." style="border:2px solid #FFE0B2;border-radius:8px;padding:10px;">
+                </div>
+                <div id="passwordError" class="text-danger small d-none">
+                    <i class="fas fa-exclamation-circle"></i> Invalid password. Please try again.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top:none;padding-top:0;padding-bottom:16px;">
+                <button class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" id="btnConfirmPassword"><i class="fas fa-check"></i> Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h4><i class="fas fa-spinner fa-spin"></i> Processing...</h4>
+        <p>Please wait while we process your request</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// ============================================
+// CSRF TOKEN
+// ============================================
+function getCSRFToken() {
+    var cookieValue = null;
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            cookieValue = cookie.substring(10);
+            break;
+        }
+    }
+    if (!cookieValue) {
+        var tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (tokenInput) {
+            cookieValue = tokenInput.value;
+        }
+    }
+    return cookieValue;
+}
+
+// ============================================
+// TOAST NOTIFICATION
+// ============================================
+function showToast(message, type) {
+    type = type || 'info';
+    var colors = { 
+        success: '#2ECC71', 
+        danger: '#E74C3C', 
+        warning: '#F39C12', 
+        info: '#3498DB' 
+    };
+    
+    var existing = document.querySelector('.custom-toast');
+    if (existing) existing.remove();
+    
+    var toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:' + (colors[type] || '#3498DB') + ';color:white;padding:12px 28px;border-radius:12px;font-weight:500;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.2);opacity:0;transition:all 0.4s ease;max-width:90%;text-align:center;';
+    
+    var iconClass = type === 'success' ? 'fa-check-circle' : 
+                    type === 'danger' ? 'fa-exclamation-circle' : 
+                    type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    toast.innerHTML = '<i class="fas ' + iconClass + ' me-2"></i>' + message;
+    document.body.appendChild(toast);
+    
+    setTimeout(function() { toast.style.opacity = '1'; }, 100);
+    setTimeout(function() { 
+        toast.style.opacity = '0'; 
+        setTimeout(function() { toast.remove(); }, 400); 
+    }, 3500);
+}
+
+// ============================================
+// LOADING FUNCTIONS
+// ============================================
+function showLoading() {
+    document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// ============================================
+// SEARCH FUNCTIONS
+// ============================================
+function resetSearch() {
+    document.getElementById('search_nama').value = '';
+    document.getElementById('search_kategori').value = '';
+    document.getElementById('search_id').value = '';
+    document.getElementById('searchForm').submit();
+}
+
+// Auto submit on Enter key
+document.addEventListener('DOMContentLoaded', function() {
+    var inputs = document.querySelectorAll('#searchForm input');
+    inputs.forEach(function(input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                document.getElementById('searchForm').submit();
+            }
+        });
+    });
+});
+
+// ============================================
+// DELETE BARANG - PERBAIKAN URL
+// ============================================
+var deleteId = null;
+
+function deleteBarang(id) {
+    console.log('Deleting barang with ID:', id);
+    deleteId = id;
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').classList.add('d-none');
+    var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    modal.show();
+}
+
+document.getElementById('btnConfirmPassword').addEventListener('click', function() {
+    var password = document.getElementById('passwordInput').value;
+    if (!password) {
+        document.getElementById('passwordError').classList.remove('d-none');
+        document.getElementById('passwordError').textContent = 'Password is required.';
+        return;
+    }
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    // ✅ PERBAIKAN: Gunakan URL yang benar dengan namespace
+    var url = "{% url 'dashboard:delete_barang' %}";
+    
+    showLoading();
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+            id: String(deleteId),
+            password: password 
+        })
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            document.getElementById('passwordError').classList.remove('d-none');
+            document.getElementById('passwordError').textContent = data.message;
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'danger');
+        document.getElementById('passwordError').classList.remove('d-none');
+        document.getElementById('passwordError').textContent = error.message;
+    });
+});
+
+document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('btnConfirmPassword').click();
+    }
+});
+
+// ============================================
+// EDIT BARANG - PERBAIKAN URL
+// ============================================
+function editBarang(id) {
+    // Tampilkan modal password dulu
+    Swal.fire({
+        title: '🔒 Verifikasi Password',
+        text: 'Masukkan password Anda untuk mengedit data barang',
+        icon: 'question',
+        input: 'password',
+        inputPlaceholder: 'Masukkan password Anda',
+        inputAttributes: {
+            autocomplete: 'current-password'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Verifikasi',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#0D47A1',
+        cancelButtonColor: '#6c757d',
+        preConfirm: function(password) {
+            if (!password) {
+                Swal.showValidationMessage('Password required!');
+                return false;
+            }
+            return password;
+        }
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            var password = result.value;
+            fetchEditBarang(id, password);
+        }
+    });
+}
+
+function fetchEditBarang(id, password) {
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    showLoading();
+    
+    // ✅ PERBAIKAN: Gunakan URL yang benar dengan namespace
+    var url = "{% url 'dashboard:get_barang' 0 %}".replace('0', id) + '?password=' + encodeURIComponent(password);
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'include'
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            document.getElementById('edit_id').value = data.data.id_barang;
+            document.getElementById('edit_id_barang').value = data.data.id_barang;
+            document.getElementById('edit_nama_barang').value = data.data.nama_barang;
+            document.getElementById('edit_lot').value = data.data.lot;
+            document.getElementById('edit_kategori').value = data.data.kategori || '';
+            document.getElementById('edit_deskripsi').value = data.data.deskripsi || '';
+            document.getElementById('edit_password').value = password;
+            
+            var modal = new bootstrap.Modal(document.getElementById('editBarangModal'));
+            modal.show();
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            if (data.message.toLowerCase().includes('password')) {
+                editBarang(id);
+            }
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'danger');
+    });
+}
+
+// Edit Form Submit
+document.getElementById('editBarangForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var password = document.getElementById('edit_password').value;
+    if (!password) {
+        document.getElementById('editPasswordError').classList.remove('d-none');
+        document.getElementById('editPasswordError').textContent = 'Password is required for FDA compliance.';
+        return;
+    }
+    
+    var formData = new FormData(this);
+    var data = {
+        id_barang: formData.get('id_barang'),
+        nama_barang: formData.get('nama_barang'),
+        lot: formData.get('lot'),
+        kategori: formData.get('kategori'),
+        deskripsi: formData.get('deskripsi'),
+        password: password
+    };
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        return;
+    }
+    
+    showLoading();
+    
+    // ✅ PERBAIKAN: Gunakan URL yang benar dengan namespace
+    var url = "{% url 'dashboard:update_barang' %}";
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        if (data.status === 'success') {
+            showToast(data.message, 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('editBarangModal'));
+            if (modal) modal.hide();
+            setTimeout(function() { location.reload(); }, 1000);
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+            if (data.message.toLowerCase().includes('password')) {
+                document.getElementById('editPasswordError').classList.remove('d-none');
+                document.getElementById('editPasswordError').textContent = data.message;
+            }
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        showToast('Error: ' + error.message, 'danger');
+    });
+});
+
+// Clear password error on typing
+document.getElementById('edit_password').addEventListener('input', function() {
+    document.getElementById('editPasswordError').classList.add('d-none');
+});
+
+// ============================================
+// EXPORT BARANG - PERBAIKAN URL
+// ============================================
+function exportBarang() {
+    var password = prompt('🔒 FDA Part 11 Compliance\n\nMasukkan password untuk export data barang:');
+    if (password === null) return;
+    if (!password) {
+        showToast('Password required for export!', 'warning');
+        return;
+    }
+    
+    var searchNama = document.getElementById('search_nama')?.value || '';
+    var searchKategori = document.getElementById('search_kategori')?.value || '';
+    var searchId = document.getElementById('search_id')?.value || '';
+    
+    // ✅ PERBAIKAN: Gunakan URL yang benar dengan namespace
+    var url = "{% url 'dashboard:export_barang_excel' %}";
+    var params = new URLSearchParams({
+        password: password,
+        search_nama: searchNama,
+        search_kategori: searchKategori,
+        search_id: searchId
+    });
+    
+    showLoading();
+    window.location.href = url + '?' + params.toString();
+    setTimeout(function() { hideLoading(); }, 5000);
+}
+
+// ============================================
+// IMPORT BARANG - PERBAIKAN URL
+// ============================================
+function importBarang(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    var file = input.files[0];
+    var validTypes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'text/csv'
+    ];
+    
+    if (!validTypes.includes(file.type) && !file.name.endsWith('.xlsx') && !file.name.endsWith('.xls') && !file.name.endsWith('.csv')) {
+        showToast('Format file tidak didukung. Gunakan .xlsx, .xls, atau .csv', 'danger');
+        input.value = '';
+        return;
+    }
+    
+    var password = prompt('🔒 FDA Part 11 Compliance\n\nMasukkan password untuk import data barang:');
+    if (password === null) {
+        input.value = '';
+        return;
+    }
+    if (!password) {
+        showToast('Password required for import!', 'warning');
+        input.value = '';
+        return;
+    }
+    
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('password', password);
+    
+    var csrfToken = getCSRFToken();
+    if (!csrfToken) {
+        showToast('CSRF token not found. Please refresh page.', 'danger');
+        input.value = '';
+        return;
+    }
+    
+    showLoading();
+    
+    // ✅ PERBAIKAN: Gunakan URL yang benar dengan namespace
+    var url = "{% url 'dashboard:import_barang_excel' %}";
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        credentials: 'include',
+        body: formData
+    })
+    .then(function(response) {
+        if (!response.ok) {
+            return response.text().then(function(text) {
+                throw new Error(text || 'Server error');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        hideLoading();
+        input.value = '';
+        if (data.status === 'success') {
+            showToast(data.message || 'Import data berhasil!', 'success');
+            setTimeout(function() { location.reload(); }, 1500);
+        } else {
+            showToast('Error: ' + data.message, 'danger');
+        }
+    })
+    .catch(function(error) {
+        hideLoading();
+        input.value = '';
+        showToast('Error: ' + error.message, 'danger');
+    });
+}
+
+// ============================================
+// DOM READY
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Data Barang page loaded');
+    hideLoading();
+});
+</script>
+{% endblock %}
