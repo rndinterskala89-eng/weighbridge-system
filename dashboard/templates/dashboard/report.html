@@ -198,6 +198,15 @@
         background: #5a6268;
         border-color: #545b62;
     }
+    .export-buttons .btn-danger {
+        background: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+    .export-buttons .btn-danger:hover {
+        background: #c82333;
+        border-color: #bd2130;
+    }
     .record-count {
         font-size: 11px;
         color: #6c757d;
@@ -554,6 +563,8 @@
             <button type="button" class="btn btn-info" onclick="exportSelected()"><i class="fas fa-check-square"></i> Selected</button>
             <button type="button" class="btn btn-primary" onclick="printReport()"><i class="fas fa-print"></i> Print</button>
             <button type="button" class="btn btn-secondary" onclick="refreshData()"><i class="fas fa-sync"></i> Refresh</button>
+            <!-- ✅ PERBAIKI: deleteAllReport (bukan deletAllReport) -->
+            <button type="button" class="btn btn-danger" onclick="deleteAllReport()"><i class="fas fa-trash-alt"></i> Delete All</button>
             <span class="record-count">
                 <i class="fas fa-database"></i> Total: <strong id="totalRecords">{{ page_obj.paginator.count }}</strong>
             </span>
@@ -985,6 +996,125 @@ function deleteReport(id) {
                         title: 'Berhasil!',
                         text: 'Report berhasil dihapus.',
                         timer: 1500,
+                        timerProgressBar: true
+                    }).then(function() {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: data.message || 'Gagal menghapus report.',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            })
+            .catch(function(error) {
+                hideLoading();
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Terjadi kesalahan: ' + error.message,
+                    confirmButtonColor: '#d33'
+                });
+            });
+        }
+    });
+}
+
+// ============================================
+// DELETE ALL REPORTS
+// ============================================
+function deleteAllReport() {
+    // Cek apakah ada data
+    var totalRecords = document.getElementById('totalRecords');
+    if (!totalRecords) return;
+    
+    var totalText = totalRecords.textContent.replace(/,/g, '').trim();
+    var total = parseInt(totalText);
+    
+    if (isNaN(total) || total === 0) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Tidak Ada Data',
+            text: 'Tidak ada report yang bisa dihapus.'
+        });
+        return;
+    }
+    
+    Swal.fire({
+        title: '⚠️ Hapus Semua Report?',
+        html: `
+            <div style="text-align:left;padding:10px 0;">
+                <p style="font-weight:600;color:#d33;font-size:16px;">
+                    <i class="fas fa-exclamation-triangle"></i> PERINGATAN!
+                </p>
+                <p>Anda akan menghapus <strong style="color:#d33;font-size:18px;">${total}</strong> report secara permanen.</p>
+                <p style="color:#6c757d;font-size:12px;">Tindakan ini TIDAK DAPAT DIBATALKAN!</p>
+                <div style="background:#fff3cd;padding:10px;border-radius:6px;margin:10px 0;border:1px solid #ffc107;">
+                    <p style="margin:0;font-size:12px;">
+                        <i class="fas fa-info-circle" style="color:#856404;"></i>
+                        FDA 21 CFR Part 11: Semua penghapusan akan tercatat di audit log.
+                    </p>
+                </div>
+                <div style="background:#f8f9fa;padding:8px;border-radius:4px;margin-top:8px;">
+                    <p style="margin:0;font-size:11px;color:#495057;">
+                        <i class="fas fa-user-shield"></i> Hanya <strong>Super Admin</strong> yang dapat menghapus semua report
+                    </p>
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus Semua!',
+        cancelButtonText: 'Batal',
+        input: 'password',
+        inputLabel: '🔑 Masukkan password untuk verifikasi',
+        inputPlaceholder: 'Masukkan password Anda',
+        inputValidator: function(value) {
+            if (!value) {
+                return 'Password required!';
+            }
+            return null;
+        },
+        preConfirm: function(password) {
+            if (!password) {
+                Swal.showValidationMessage('Password required!');
+                return false;
+            }
+            return password;
+        }
+    }).then(function(result) {
+        if (result.isConfirmed) {
+            showLoading();
+            
+            fetch('/report/delete-all/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ password: result.value })
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    return response.text().then(function(text) {
+                        throw new Error('Server error: ' + response.status + ' - ' + text);
+                    });
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                hideLoading();
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message || 'Semua report berhasil dihapus.',
+                        timer: 2500,
                         timerProgressBar: true
                     }).then(function() {
                         location.reload();

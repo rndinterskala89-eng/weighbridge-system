@@ -130,26 +130,126 @@ def detect_printer_type(printer_name):
     return 'unknown'
 
 
-def center_text(text, width=80):
+# ============================================
+# FUNGSI CENTER_TEXT
+# ============================================
+
+def center_text(text, width=32):
     """
     Center text untuk print dengan lebar tertentu
-    Default width = 80 untuk LX-310
+    Default width = 32 untuk LX-310 (23,50mm)
     """
     text = str(text)
     if len(text) >= width:
         return text[:width]
-    # Hitung padding kiri dan kanan
     left_padding = (width - len(text)) // 2
     right_padding = width - len(text) - left_padding
     return ' ' * left_padding + text + ' ' * right_padding
 
 
+# ============================================
+# FUNGSI FORMAT TICKET LX-310 - BARU
+# ============================================
+
+def format_ticket_lx310(no_transaksi, barang, barang_id, barang_lot,
+                        kustomer, kustomer_id, supplier, supplier_id,
+                        weight, keterangan, operator,
+                        company_name, company_address, company_phone):
+    """
+    FORMAT KHUSUS LX-310
+    Ukuran: 23,50mm x 13,50cm
+    Lebar: 32 karakter - FORMAT PADAT
+    """
+    from datetime import datetime
+    now = datetime.now()
+    
+    W = 32
+    LINE = '=' * W
+    
+    tanggal = now.strftime('%d-%m-%Y')
+    waktu = now.strftime('%H:%M:%S')
+    
+    def t(text, max_len=28):
+        return str(text)[:max_len]
+    
+    # FORMAT PADAT - TANPA SPASI BERLEBIH
+    ticket = f"""{LINE}
+{center_text(t(company_name, 28), W)}
+{center_text(t(company_address, 28), W)}
+{center_text(f'TELP:{t(company_phone, 20)}', W)}
+{LINE}
+{center_text('WEIGHING TICKET', W)}
+{center_text(f'{tanggal} {waktu}', W)}
+No:{t(no_transaksi, 28)}
+Brg:{t(barang, 28)}
+ID:{t(barang_id, 28)}
+Lot:{t(barang_lot, 28)}
+Kust:{t(kustomer, 28)}
+IDK:{t(kustomer_id, 28)}
+Supp:{t(supplier, 28)}
+IDS:{t(supplier_id, 28)}
+{center_text(f'BERAT:{t(weight, 10)}kg', W)}
+Ket:{t(keterangan, 28)}
+Opr:{t(operator, 20)}
+{LINE}
+{center_text('TERIMA KASIH', W)}
+{center_text('FDA 21 CFR Part 11', W)}
+{LINE}"""
+    return ticket
+
+
+# ============================================
+# FUNGSI FORMAT TICKET THERMAL
+# ============================================
+
+def format_ticket_thermal(no_transaksi, barang, barang_id, barang_lot,
+                         kustomer, kustomer_id, supplier, supplier_id,
+                         weight, keterangan, operator,
+                         company_name, company_address, company_phone, company_email):
+    """Format untuk printer TM-U220D (Thermal, 58mm / 32 kolom)"""
+    from datetime import datetime
+    now = datetime.now()
+    line = '=' * 32
+    #thin = '-' * 32
+    
+    company_short = company_name[:20] if len(company_name) > 20 else company_name
+    
+    ticket = f"""{line}
+{center_text(company_short, 32)}
+{center_text('WEIGHING TICKET', 32)}
+No   : {no_transaksi}
+Tgl  : {now.strftime('%d-%m-%Y %H:%M')}
+Brg  : {barang[:18]}
+ID   : {barang_id}
+Lot  : {barang_lot}
+Kust : {kustomer[:18]}
+ID   : {kustomer_id}
+Supp : {supplier[:18]}
+ID   : {supplier_id}
+{center_text(f'BERAT: {weight} kg', 32)}
+Ket  : {keterangan[:18]}
+Opr  : {operator[:15]}
+{line}
+{center_text('THANK YOU', 32)}
+{center_text('FDA 21 CFR Part 11', 32)}
+{line}"""
+    return ticket
+
+
+# ============================================
+# FUNGSI SEND_TO_PRINTER - DIPERBAIKI
+# ============================================
+
 def send_to_printer(printer_name, ticket, printer_type='dotmatrix'):
     """Kirim data ke printer - HANYA 1 KALI"""
     try:
         encoding = 'cp437'
+        
         if printer_type == 'thermal':
             encoding = 'cp437'
+        
+        # ⚠️ HAPUS NEWLINE BERLEBIH - CUKUP 1 DI AKHIR
+        ticket = ticket.strip() + '\n'
         
         # QZ Tray
         try:
@@ -179,6 +279,12 @@ def send_to_printer(printer_name, ticket, printer_type='dotmatrix'):
                         devmode = printer_info['pDevMode']
                         if devmode:
                             devmode.Copies = 1
+                            try:
+                                devmode.PaperSize = 256  # Custom
+                                devmode.PaperWidth = 935   # 23,50mm
+                                devmode.PaperLength = 5400 # 135,00mm
+                            except:
+                                pass
                             win32print.SetPrinter(hprinter, 2, printer_info, 0)
                         
                         job_id = win32print.StartDocPrinter(hprinter, 1, ('Ticket', None, 'RAW'))
@@ -204,103 +310,9 @@ def send_to_printer(printer_name, ticket, printer_type='dotmatrix'):
         logger.error(f"Send to printer error: {e}")
         return {'status': 'error', 'message': str(e)}
 
-# ============================================
-# FUNGSI FORMAT TICKET
-# ============================================
-
-def format_ticket_dotmatrix(no_transaksi, barang, barang_id, barang_lot,
-                           kustomer, kustomer_id, supplier, supplier_id,
-                           weight, keterangan, operator,
-                           company_name, company_address, company_phone, company_email):
-    """
-    Format LX-310 dengan spasi antara Kustomer dan Supplier (VERSI PADAT)
-    """
-    from datetime import datetime
-    now = datetime.now()
-    WIDTH = 10
-    LINE = '=' * WIDTH
-    THIN = '-' * WIDTH
-    
-    tanggal = now.strftime('%d-%m-%Y')
-    waktu = now.strftime('%H:%M:%S')
-    
-    # ============================================
-    # TICKET PADAT (TANPA JARAK BERLEBIH)
-    # ============================================
-    ticket = f"""{LINE}
-{center_text(company_name, WIDTH)}
-{center_text(company_address[:40], WIDTH)}
-{center_text(f'TELP: {company_phone}', WIDTH)}
-{LINE}
-{center_text('WEIGHING IoT TICKET', WIDTH)}
-{center_text(f'{tanggal}  {waktu}', WIDTH)}
-{THIN}
-{'No. Transaksi':<5} : {no_transaksi}
-{'Nama Barang':<5} : {barang[:30]}
-{'ID Barang':<5} : {barang_id}
-{'Lot':<5} : {barang_lot}
-{THIN}
-{'Kustomer':<5} : {kustomer[:30]}
-{'ID Kustomer':<5} : {kustomer_id}
-{THIN}
-{'Supplier':<5} : {supplier[:30]}
-{'ID Supplier':<5} : {supplier_id}
-{THIN}
-{center_text(f'BERAT : {weight} kg', WIDTH)}
-{THIN}
-{'Keterangan':<5} : {keterangan[:30]}
-{'Operator':<5} : {operator[:20]}
-{LINE}
-{center_text('TERIMA KASIH', WIDTH)}
-{center_text('FDA 21 CFR Part 11', WIDTH)}
-{LINE}"""
-    return ticket
-
-   # Konfigurasi Printer TM-U220D
-def format_ticket_thermal(no_transaksi, barang, barang_id, barang_lot,
-                         kustomer, kustomer_id, supplier, supplier_id,
-                         weight, keterangan, operator,
-                         company_name, company_address, company_phone, company_email):
-    """Format untuk printer TM-U220D (Thermal, 58mm / 32 kolom) - 1 HALAMAN"""
-    now = datetime.now()
-    line = '=' * 32
-    thin = '-' * 32
-    
-    # Singkat nama perusahaan untuk thermal
-    company_short = company_name[:20] if len(company_name) > 20 else company_name
-    
-    ticket = f"""
-{line}
-{center_text(company_short, 32)}
-{center_text('WEIGHING TICKET', 32)}
-{thin}
-No   : {no_transaksi}
-Tgl  : {now.strftime('%d-%m-%Y %H:%M')}
-{thin}
-Brg  : {barang[:18]}
-ID   : {barang_id}
-Lot  : {barang_lot}
-{thin}
-Kust : {kustomer[:18]}
-ID   : {kustomer_id}
-{thin}
-Supp : {supplier[:18]}
-ID   : {supplier_id}
-{thin}
-{center_text(f'BERAT: {weight} kg', 32)}
-{thin}
-Ket  : {keterangan[:18]}
-Opr  : {operator[:15]}
-{line}
-{center_text('THANK YOU', 32)}
-{center_text('FDA 21 CFR Part 11', 32)}
-{line}
-"""
-    return ticket
-
 
 # ============================================
-# VIEW PRINT TICKET
+# VIEW PRINT TICKET - DIPERBAIKI
 # ============================================
 
 @login_required
@@ -332,8 +344,8 @@ def print_ticket(request):
         # Ambil company profile
         company = CompanyProfile.objects.first()
         company_name = company.name if company else 'PT Interskala Mandiri Indonesia'
-        company_address = company.address if company else 'Green Sedayu Biz Park Jl. Daan Mogot KM. 18, Kalideres, Jakarta Barat'
-        company_phone = company.phone if company else '(021) 2252-2992'
+        company_address = company.address if company else 'Green Sedayu Biz Park'
+        company_phone = company.phone if company else '(021)2252-2992'
         company_email = company.email if company else 'sales@interskala.com'
         
         # Deteksi printer yang tersedia
@@ -358,13 +370,19 @@ def print_ticket(request):
             )
             printer_type_display = 'Epson TM-U220D (Thermal)'
         else:
-            ticket = format_ticket_dotmatrix(
+            # ✅ GUNAKAN FORMAT LX-310 YANG BARU
+            ticket = format_ticket_lx310(
                 no_transaksi, barang, barang_id, barang_lot,
                 kustomer, kustomer_id, supplier, supplier_id,
                 weight, keterangan, operator,
-                company_name, company_address, company_phone, company_email
+                company_name, company_address, company_phone
             )
             printer_type_display = 'Epson LX-310 (Dot Matrix)'
+        
+        # DEBUG: Cek jumlah baris
+        lines = len(ticket.strip().split('\n'))
+        print(f"📄 Ticket lines: {lines}")
+        print(f"🖨️ Printer: {printer_name} ({printer_type_display})")
         
         # Kirim ke printer
         result = send_to_printer(printer_name, ticket, printer_type)
@@ -386,7 +404,8 @@ def print_ticket(request):
                 'message': f'Ticket printed successfully on {printer_type_display}',
                 'printer': printer_name,
                 'printer_type': printer_type_display,
-                'no_transaksi': no_transaksi
+                'no_transaksi': no_transaksi,
+                'lines': lines
             })
         else:
             return JsonResponse({
@@ -467,18 +486,15 @@ def detect_printers(request):
             'message': str(e)
         }, status=500)
 
-
 # ============================================
-# END OF PRINT FUNCTIONS
+# LANJUTKAN DENGAN VIEWS LAINNYA...
 # ============================================
 
 def ensure_default_weight_data():
     """Pastikan ada data weight = 0 di database"""
     try:
-        # Cek apakah ada data terakhir
         latest = WeightData.objects.all().order_by('-created_at').first()
         if not latest:
-            # Buat data default
             WeightData.objects.create(
                 entry_id='0',
                 weight=0,
@@ -521,10 +537,8 @@ def report_update(request, pk):
         
         report = Report.objects.get(id=pk, report_type='Transaction')
         
-        # Update data
         report_data = report.data if isinstance(report.data, dict) else {}
         
-        # Update fields yang dikirim
         if 'no_transaksi' in data:
             report_data['no_transaksi'] = data.get('no_transaksi')
         if 'barang' in data:
@@ -576,15 +590,13 @@ def report_update(request, pk):
             'message': str(e)
         }, status=500)
 
+
 # ============================================
 # HELPER FUNCTIONS
 # ============================================
 
 def get_photo_url(file_path):
-    """
-    Helper function untuk mendapatkan URL foto dengan aman,
-    baik dari FieldFile maupun string.
-    """
+    """Helper function untuk mendapatkan URL foto dengan aman"""
     if not file_path:
         return ''
     
@@ -618,6 +630,7 @@ def check_db_connection():
 # ============================================
 # AUTHENTICATION VIEWS
 # ============================================
+
 @csrf_protect
 def login_view(request):
     """Halaman login"""
@@ -738,7 +751,6 @@ def dashboard(request):
 # ============================================
 # API VIEWS - REALTIME
 # ============================================
-
 @login_required
 @csrf_exempt
 def get_weight_history(request):
@@ -4439,6 +4451,93 @@ def export_audit_csv(request):
             'message': f'Export failed: {str(e)}'
         }, status=500)
 
+# ============================================
+# DELETE ALL REPORTS
+# ============================================
+
+@login_required
+def delete_all_report(request):
+    """Delete all reports with FDA compliance"""
+    if request.method != 'POST':
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Method not allowed'
+        }, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        password = data.get('password')
+        
+        if not password:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Password required for FDA compliance'
+            }, status=400)
+        
+        if not request.user.check_password(password):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid password'
+            }, status=401)
+        
+        # Hanya Super Admin yang bisa delete all
+        if not request.user.is_superuser:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Only Super Admin can delete all reports'
+            }, status=403)
+        
+        reports = Report.objects.filter(report_type='Transaction')
+        count = reports.count()
+        
+        if count == 0:
+            return JsonResponse({
+                'status': 'success',
+                'message': 'No reports to delete'
+            })
+        
+        # Hapus file foto jika ada
+        deleted_files = 0
+        for report in reports:
+            if report.file_path:
+                try:
+                    path = os.path.join(settings.MEDIA_ROOT, str(report.file_path))
+                    if os.path.exists(path):
+                        os.remove(path)
+                        deleted_files += 1
+                except Exception as e:
+                    logger.warning(f"Could not delete file: {e}")
+        
+        # Log aktivitas
+        try:
+            UserActivity.objects.create(
+                user=request.user,
+                action='Delete All Reports',
+                details=f'Deleted ALL {count} reports (including {deleted_files} photos)',
+                ip_address=request.META.get('REMOTE_ADDR', '')
+            )
+        except Exception as e:
+            logger.warning(f"Logging error: {e}")
+        
+        reports.delete()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': f'All {count} reports deleted successfully. {deleted_files} photos removed.'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON data'
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Delete all reports error: {e}", exc_info=True)
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
 @login_required
 def delete_audit_log(request):
     """Delete single audit log (Super Admin only)"""
@@ -4487,28 +4586,47 @@ def delete_audit_log(request):
         print(f"Delete audit log error: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     
+    # ============================================
+    # DELETE ALL AUDIT LOGS (Super Admin Only)   
+    # ============================================
 @login_required
 def delete_all_audit_logs(request):
     """Delete all audit logs (Super Admin only)"""
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Method not allowed'
+        }, status=405)
     
     try:
+        # Cek permission - hanya Super Admin
         if not request.user.is_superuser:
-            return JsonResponse({'status': 'error', 'message': 'Only Super Admin can delete audit logs'}, status=403)
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Only Super Admin can delete all audit logs'
+            }, status=403)
         
         data = json.loads(request.body)
         password = data.get('password')
         confirm = data.get('confirm')
         
         if not password:
-            return JsonResponse({'status': 'error', 'message': 'Password required for FDA compliance'}, status=400)
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Password required for FDA compliance'
+            }, status=400)
         
         if not request.user.check_password(password):
-            return JsonResponse({'status': 'error', 'message': 'Wrong password'}, status=401)
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Wrong password'
+            }, status=401)
         
         if confirm != 'DELETE_ALL_AUDIT':
-            return JsonResponse({'status': 'error', 'message': 'Confirmation text must be "DELETE_ALL_AUDIT"'}, status=400)
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Confirmation text must be "DELETE_ALL_AUDIT"'
+            }, status=400)
         
         count = UserActivity.objects.count()
         
@@ -4525,10 +4643,19 @@ def delete_all_audit_logs(request):
         
         UserActivity.objects.all().delete()
         
-        return JsonResponse({'status': 'success', 'message': f'All {count} audit logs deleted successfully'})
+        return JsonResponse({
+            'status': 'success',
+            'message': f'All {count} audit logs deleted successfully'
+        })
         
     except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'}, status=400)
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON data'
+        }, status=400)
     except Exception as e:
-        print(f"Delete all audit logs error: {e}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        logger.error(f"Delete all audit logs error: {e}", exc_info=True)
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
